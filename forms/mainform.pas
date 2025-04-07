@@ -3,7 +3,8 @@ unit MainForm;
 interface
 
 uses
-	JS, Classes, SysUtils, Graphics, Controls, Forms, Dialogs, WebCtrls, StdCtrls,
+	JS, Classes, SysUtils, Graphics, Controls, Forms, WebCtrls, StdCtrls,
+	Contnrs,
 	LaneWidgets, BrulionTypes, BrulionApiConnector;
 
 type
@@ -19,8 +20,10 @@ type
 		procedure AddLaneButtonClick(Sender: TObject);
 	private
 		FBoardData: TBoardsApiDataList;
-		procedure Load();
+		FTemporaryObjects: TObjectList;
 	private
+		procedure Load();
+		function TemporaryObject(AObject: TObject): TObject;
 		procedure UpdateBoards(Sender: TObject);
 	public
 		constructor Create(AOwner: TComponent); override;
@@ -53,13 +56,22 @@ begin
 	LBoardsApi.LoadBoards(@self.UpdateBoards);
 end;
 
+function TMainForm.TemporaryObject(AObject: TObject): TObject;
+begin
+	FTemporaryObjects.Add(AObject);
+	result := AObject;
+end;
+
 procedure TMainForm.UpdateBoards(Sender: TObject);
 var
 	I: Integer;
 begin
 	FBoardData := Sender as TBoardsApiDataList;
 	for I := 0 to High(FBoardData.Value) do begin
-		BoardListCombo.Append(FBoardData.Value[I].Name);
+		BoardListCombo.AddItem(
+			FBoardData.Value[I].Name,
+			TemporaryObject(TWrappedBoardData.Create(FBoardData.Value[I]))
+		);
 	end;
 
 	// TODO: last used board (stored in webpage memory)
@@ -70,12 +82,14 @@ end;
 constructor TMainForm.Create(AOwner: TComponent);
 begin
 	inherited Create(AOwner);
+	FTemporaryObjects := TObjectList.Create;
 	Load;
 end;
 
 destructor TMainForm.Destroy();
 begin
 	FBoardData.Free;
+	FTemporaryObjects.Free;
 	inherited;
 end;
 
