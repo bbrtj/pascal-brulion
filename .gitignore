@@ -18,6 +18,7 @@
 *.rst
 *.rsj
 *.lrt
+*.ico
 
 # Lazarus local files (user-specific info)
 *.lps

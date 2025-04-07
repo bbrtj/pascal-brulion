@@ -30,6 +30,7 @@
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
+            <OtherUnitFiles Value="forms"/>
           </SearchPaths>
           <CodeGeneration>
             <TargetOS Value="browser"/>
@@ -78,7 +79,7 @@
         </CustomData>
       </Unit>
       <Unit>
-        <Filename Value="mainform.pas"/>
+        <Filename Value="forms/mainform.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MainForm"/>
         <HasResources Value="True"/>
@@ -86,7 +87,7 @@
         <UnitName Value="MainForm"/>
       </Unit>
       <Unit>
-        <Filename Value="lanewidgets.pas"/>
+        <Filename Value="forms/lanewidgets.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="LaneFrame"/>
         <HasResources Value="True"/>
@@ -98,6 +99,7 @@
     <Version Value="11"/>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
+      <OtherUnitFiles Value="forms;src"/>
     </SearchPaths>
     <CodeGeneration>
       <TargetOS Value="browser"/>
