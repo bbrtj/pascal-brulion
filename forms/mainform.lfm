@@ -8,6 +8,7 @@ object MainForm: TMainForm
   ClientHeight = 500
   ClientWidth = 800
   DesignTimePPI = 98
+  OnShow = Load
   ScalingDesign = True
   object TopMenuPanel: TWPanel
     Left = 0
@@ -36,6 +37,7 @@ object MainForm: TMainForm
       Width = 102
       ItemHeight = 23
       TabOrder = 1
+      OnChange = LoadBoard
     end
     object AddBoardButton: TWButton
       Left = 601

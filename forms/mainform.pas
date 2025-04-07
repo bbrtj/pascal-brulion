@@ -18,11 +18,12 @@ type
 		TopMenuPanel: TWPanel;
 		BoardPanel: TWPanel;
 		procedure AddLaneButtonClick(Sender: TObject);
+		procedure LoadBoard(Sender: TObject);
+		procedure Load(Sender: TObject);
 	private
 		FBoardData: TBoardsApiDataList;
 		FTemporaryObjects: TObjectList;
 	private
-		procedure Load();
 		function TemporaryObject(AObject: TObject): TObject;
 		procedure UpdateBoards(Sender: TObject);
 	public
@@ -48,7 +49,17 @@ begin
 	LLane.Parent := BoardPanel;
 end;
 
-procedure TMainForm.Load();
+procedure TMainForm.LoadBoard(Sender: TObject);
+begin
+	if BoardListCombo.ItemIndex >= 0 then begin
+		writeln(TWrappedBoardData(BoardListCombo.Items.Objects[BoardListCombo.ItemIndex]).Data.Id)
+	end
+	else begin
+		// TODO: clear board
+	end;
+end;
+
+procedure TMainForm.Load(Sender: TObject);
 var
 	LBoardsApi: TBoardsApi;
 begin
@@ -77,13 +88,15 @@ begin
 	// TODO: last used board (stored in webpage memory)
 	if length(FBoardData.Value) > 0 then
 		BoardListCombo.ItemIndex := 0;
+
+	// not called automatically by modifying ItemIndex
+	LoadBoard(Sender);
 end;
 
 constructor TMainForm.Create(AOwner: TComponent);
 begin
 	inherited Create(AOwner);
 	FTemporaryObjects := TObjectList.Create;
-	Load;
 end;
 
 destructor TMainForm.Destroy();
