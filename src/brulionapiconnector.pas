@@ -85,7 +85,11 @@ type
 	end;
 
 function Serialize(Value: TBoardData): TJsonData;
-function DeSerialize(Value: TJsonData): TBoardData;
+function Serialize(Value: TLaneData): TJsonData;
+
+// Template is not used - it's a hack to force function overloading to work.
+function DeSerialize(Value: TJsonData; const Template: TBoardData): TBoardData;
+function DeSerialize(Value: TJsonData; const Template: TLaneData): TLaneData;
 
 implementation
 
@@ -105,7 +109,7 @@ end;
 
 procedure TBrulionApiDataSingle.Unpack(Value: TJsonData);
 begin
-	FValue := DeSerialize(Value);
+	FValue := DeSerialize(Value, FValue);
 end;
 
 function TBrulionApiDataList.Pack(): String;
@@ -138,7 +142,7 @@ begin
 	SetLength(self.Value, LData.Count);
 
 	for I := 0 to LData.Count - 1 do begin
-		self.Value[I] := DeSerialize(LData[I]);
+		self.Value[I] := DeSerialize(LData[I], self.Value[I]);
 	end;
 end;
 
@@ -213,13 +217,30 @@ begin
 	// TODO
 end;
 
-function DeSerialize(Value: TJsonData): TBoardData;
+function Serialize(Value: TLaneData): TJsonData;
+begin
+	// TODO
+end;
+
+function DeSerialize(Value: TJsonData; const Template: TBoardData): TBoardData;
 begin
 	if not(
 		(Value is TJsonObject)
 		and (TJsonObject(Value).Elements['id'] is TJsonString)
 		and (TJsonObject(Value).Elements['name'] is TJsonString)
 	) then raise EBrulionSerializer.Create('invalid board data');
+
+	result.Id := TJsonObject(Value).Strings['id'];
+	result.Name := TJsonObject(Value).Strings['name'];
+end;
+
+function DeSerialize(Value: TJsonData; const Template: TLaneData): TLaneData;
+begin
+	if not(
+		(Value is TJsonObject)
+		and (TJsonObject(Value).Elements['id'] is TJsonString)
+		and (TJsonObject(Value).Elements['name'] is TJsonString)
+	) then raise EBrulionSerializer.Create('invalid lane data');
 
 	result.Id := TJsonObject(Value).Strings['id'];
 	result.Name := TJsonObject(Value).Strings['name'];

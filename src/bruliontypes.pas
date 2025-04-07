@@ -22,8 +22,14 @@ type
 		Name: String;
 	end;
 	TWrappedBoardData = specialize TWrappedRecord<TBoardData>;
-
 	TBoardDataArray = Array of TBoardData;
+
+	TLaneData = record
+		Id: TUlid;
+		Name: String;
+	end;
+	TWrappedLaneData = specialize TWrappedRecord<TLaneData>;
+	TLaneDataArray = Array of TLaneData;
 
 implementation
 
