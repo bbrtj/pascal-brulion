@@ -22,6 +22,32 @@
     </CustomData>
     <BuildModes>
       <Item Name="Default" Default="True"/>
+      <Item Name="Release">
+        <CompilerOptions>
+          <Version Value="11"/>
+          <Target>
+            <Filename Value="brulion"/>
+          </Target>
+          <SearchPaths>
+            <IncludeFiles Value="$(ProjOutDir)"/>
+          </SearchPaths>
+          <CodeGeneration>
+            <TargetOS Value="browser"/>
+          </CodeGeneration>
+          <Linking>
+            <Debugging>
+              <GenerateDebugInfo Value="False"/>
+            </Debugging>
+          </Linking>
+          <Other>
+            <CustomOptions Value="-Jeutf-8 -Jirtl.js -Jc -Jminclude -JRjs"/>
+            <CompilerPath Value="$(pas2js)"/>
+          </Other>
+        </CompilerOptions>
+      </Item>
+      <SharedMatrixOptions Count="1">
+        <Item1 ID="654480912962" Modes="Default" Value="-dBrulionApiUrl:=&quot;&apos;http://localhost:5000/api&apos;&quot;"/>
+      </SharedMatrixOptions>
     </BuildModes>
     <PublishOptions>
       <Version Value="2"/>
@@ -59,13 +85,17 @@
         <ResourceBaseClass Value="CustomForm"/>
         <UnitName Value="MainForm"/>
       </Unit>
+      <Unit>
+        <Filename Value="lanewidgets.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="LaneFrame"/>
+        <HasResources Value="True"/>
+        <UnitName Value="LaneWidgets"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
-    <Target>
-      <Filename Value="brulion"/>
-    </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
     </SearchPaths>
