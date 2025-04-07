@@ -9,7 +9,7 @@ uses SysUtils, Classes, Web, FPJson, FPJsonJS,
 
 const
 	// see project options for this define
-	{$MACRO ON} ApiUrl = BrulionApiUrl; {$MACRO OFF}
+	{$macro on} ApiUrl = BrulionApiUrl; {$macro off}
 
 type
 	EBrulionApi = class(Exception);

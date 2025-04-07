@@ -7,7 +7,7 @@ interface
 uses SysUtils, FPJson, FPJsonJS;
 
 type
-	TULID = type String; // not working: [26];
+	TUlid = type String; // not working: [26];
 
 	TBrulionData = class abstract
 	public
@@ -22,7 +22,7 @@ type
 	public type
 		TBrulionDataArray = array of T;
 	private
-		FBookmark: String;
+		FBookmark: TUlid;
 	public
 		List: TBrulionDataArray;
 	public
@@ -31,12 +31,12 @@ type
 		function HasBookmark(): Boolean;
 	public
 		property HasMoreData: Boolean read HasBookmark;
-		property Bookmark: String read FBookmark;
+		property Bookmark: TUlid read FBookmark;
 	end;
 
 	TBoardData = class(TBrulionData)
 	public
-		Id: TULID;
+		Id: TUlid;
 		Name: String;
 	public
 		function Pack(): String; override;

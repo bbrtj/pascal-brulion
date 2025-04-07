@@ -18,7 +18,7 @@ type
 		procedure SetParent(AValue: TWinControl);
 	public
 		constructor Create(AOwner: TComponent); override;
-
+	public
 		property Parent write SetParent;
 	end;
 

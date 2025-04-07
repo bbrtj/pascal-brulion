@@ -8,8 +8,6 @@ uses
 
 type
 
-	{ TWForm1 }
-
 	{ TMainForm }
 
 	TMainForm = class(TWForm)
@@ -63,6 +61,10 @@ begin
 	for I := 0 to High(FBoardData.List) do begin
 		BoardListCombo.AddItem(FBoardData.List[I].Name, FBoardData.List[I]);
 	end;
+
+	// TODO: last used board (stored in webpage memory)
+	if length(FBoardData.List) > 0 then
+		BoardListCombo.ItemIndex := 0;
 end;
 
 constructor TMainForm.Create(AOwner: TComponent);
