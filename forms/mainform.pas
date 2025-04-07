@@ -18,7 +18,7 @@ type
 		BoardPanel: TWPanel;
 		procedure AddLaneButtonClick(Sender: TObject);
 	private
-		FBoardData: TBoardDataList;
+		FBoardData: TBoardsApiDataList;
 		procedure Load();
 	private
 		procedure UpdateBoards(Sender: TObject);
@@ -57,13 +57,13 @@ procedure TMainForm.UpdateBoards(Sender: TObject);
 var
 	I: Integer;
 begin
-	FBoardData := Sender as TBoardDataList;
-	for I := 0 to High(FBoardData.List) do begin
-		BoardListCombo.AddItem(FBoardData.List[I].Name, FBoardData.List[I]);
+	FBoardData := Sender as TBoardsApiDataList;
+	for I := 0 to High(FBoardData.Value) do begin
+		BoardListCombo.Append(FBoardData.Value[I].Name);
 	end;
 
 	// TODO: last used board (stored in webpage memory)
-	if length(FBoardData.List) > 0 then
+	if length(FBoardData.Value) > 0 then
 		BoardListCombo.ItemIndex := 0;
 end;
 

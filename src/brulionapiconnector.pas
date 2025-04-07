@@ -13,12 +13,46 @@ const
 
 type
 	EBrulionApi = class(Exception);
+	EBrulionSerializer = class(EBrulionApi);
+
+	TBrulionApiDataBase = class
+	public
+		function Pack(): String; virtual; abstract;
+		procedure Unpack(Value: TJsonData); virtual; abstract;
+		procedure Unpack(Data: String);
+	end;
+
+	generic TBrulionApiDataSingle<T> = class(TBrulionApiDataBase)
+	private
+		FValue: T;
+	public
+		function Pack(): String; override;
+		procedure Unpack(Value: TJsonData); override;
+	public
+		property Value: T read FValue write FValue;
+	end;
+
+	generic TBrulionApiDataList<T> = class(TBrulionApiDataBase)
+	private type
+		TArray = Array of T;
+	private
+		FValue: TArray;
+		FBookmark: TUlid;
+	public
+		function Pack(): String; override;
+		procedure Unpack(Value: TJsonData); override;
+		function HasBookmark(): Boolean;
+	public
+		property HasMoreData: Boolean read HasBookmark;
+		property Bookmark: TUlid read FBookmark;
+		property Value: TArray read FValue write FValue;
+	end;
 
 	TAjax = class
 	private
 		FXmlHttpRequest: TJSXMLHttpRequest;
 		FBaseUrl: String;
-		FDataResult: TBrulionData;
+		FDataResult: TBrulionApiDataBase;
 		FOnLoad: TNotifyEvent;
 	private
 		function Loaded(Response: TEventListenerEvent): Boolean;
@@ -29,32 +63,95 @@ type
 		procedure Get(const Url: string);
 	public
 		property OnLoad: TNotifyEvent write FOnLoad;
-		property DataResult: TBrulionData write FDataResult;
+		property DataResult: TBrulionApiDataBase write FDataResult;
 	end;
 
 	TApi = class abstract
 	private
 		FBaseUrl: String;
 	protected
-		function GetAjax(Event: TNotifyEvent; DataResult: TBrulionData): TAjax;
+		function GetAjax(Event: TNotifyEvent; DataResult: TBrulionApiDataBase): TAjax;
 	public
 		constructor Create(const BaseUrl: String);
 	public
 		property BaseUrl: String read FBaseUrl;
 	end;
 
+	TBoardsApiDataList = specialize TBrulionApiDataList<TBoardData>;
 	TBoardsApi = class(TApi)
 	public
 		constructor Create();
 		procedure LoadBoards(Event: TNotifyEvent);
 	end;
 
+function Serialize(Value: TBoardData): TJsonData;
+function DeSerialize(Value: TJsonData): TBoardData;
+
 implementation
+
+procedure TBrulionApiDataBase.Unpack(Data: String);
+begin
+	self.Unpack(GetJSON(Data));
+end;
+
+function TBrulionApiDataSingle.Pack(): String;
+var
+	LSerialized: TJsonData;
+begin
+	LSerialized := Serialize(FValue);
+	result := LSerialized.AsJson;
+	LSerialized.Free;
+end;
+
+procedure TBrulionApiDataSingle.Unpack(Value: TJsonData);
+begin
+	FValue := DeSerialize(Value);
+end;
+
+function TBrulionApiDataList.Pack(): String;
+var
+	LSerialized: TJsonArray;
+	I: Integer;
+begin
+	for I := 0 to High(self.Value) do begin
+		LSerialized.Add(Serialize(self.Value[I]));
+	end;
+
+	result := LSerialized.AsJson;
+	LSerialized.Free;
+end;
+
+procedure TBrulionApiDataList.Unpack(Value: TJsonData);
+var
+	LData: TJsonArray;
+	I: Integer;
+begin
+	if not(
+		(Value is TJsonObject)
+		and (TJsonObject(Value).Elements['data'] is TJsonArray)
+	) then raise EBrulionSerializer.Create('invalid board list data');
+
+	if TJsonObject(Value).Elements['bookmark'] is TJsonString then
+		FBookmark := TJsonObject(Value).Elements['bookmark'].AsString;
+
+	LData := TJsonObject(Value).Arrays['data'];
+	SetLength(self.Value, LData.Count);
+
+	for I := 0 to LData.Count - 1 do begin
+		self.Value[I] := DeSerialize(LData[I]);
+	end;
+end;
+
+function TBrulionApiDataList.HasBookmark(): Boolean;
+begin
+	result := length(FBookmark) > 0;
+end;
 
 function TAjax.Loaded(Response: TEventListenerEvent): Boolean;
 begin
 	FDataResult.Unpack(FXmlHttpRequest.ResponseText);
 	FOnLoad(FDataResult);
+	FDataResult.Free;
 	result := true;
 end;
 
@@ -69,6 +166,7 @@ destructor TAjax.Destroy;
 begin
 	// no need to free FXmlHttpRequest, it's a JS object
 	// FXmlHttpRequest.Free;
+	inherited;
 end;
 
 procedure TAjax.Get(const Url: String);
@@ -84,7 +182,7 @@ begin
 	FXmlHttpRequest.send;
 end;
 
-function TApi.GetAjax(Event: TNotifyEvent; DataResult: TBrulionData): TAjax;
+function TApi.GetAjax(Event: TNotifyEvent; DataResult: TBrulionApiDataBase): TAjax;
 begin
 	result := TAjax.Create(ApiUrl + self.BaseUrl);
 	result.DataResult := DataResult;
@@ -107,7 +205,24 @@ procedure TBoardsApi.LoadBoards(Event: TNotifyEvent);
 const
 	CUrl = '';
 begin
-	self.GetAjax(Event, TBoardDataList.Create).Get(CUrl);
+	self.GetAjax(Event, TBoardsApiDataList.Create).Get(CUrl);
+end;
+
+function Serialize(Value: TBoardData): TJsonData;
+begin
+	// TODO
+end;
+
+function DeSerialize(Value: TJsonData): TBoardData;
+begin
+	if not(
+		(Value is TJsonObject)
+		and (TJsonObject(Value).Elements['id'] is TJsonString)
+		and (TJsonObject(Value).Elements['name'] is TJsonString)
+	) then raise EBrulionSerializer.Create('invalid board data');
+
+	result.Id := TJsonObject(Value).Strings['id'];
+	result.Name := TJsonObject(Value).Strings['name'];
 end;
 
 end.
