@@ -1,49 +1,59 @@
 object MainForm: TMainForm
   Left = 0
-  Height = 297
+  Height = 500
   Top = 0
-  Width = 741
+  Width = 800
   AlphaBlend = False
   AlphaBlendValue = 255
-  ClientHeight = 297
-  ClientWidth = 741
+  ClientHeight = 500
+  ClientWidth = 800
   DesignTimePPI = 98
   ScalingDesign = True
-  object WPanel1: TWPanel
-    Left = 288
-    Height = 250
-    Top = 24
-    Width = 437
-    Caption = 'WPanel1'
-    ClientHeight = 250
-    ClientWidth = 437
+  object TopMenuPanel: TWPanel
+    Left = 0
+    Height = 40
+    Top = 0
+    Width = 800
+    BevelOuter = bvNone
+    Caption = 'TopMenuPanel'
+    ClientHeight = 40
+    ClientWidth = 800
+    HandleId = 'top-menu'
     TabOrder = 0
-    object WButton1: TWButton
+    object AddLaneButton: TWButton
       Left = 8
-      Height = 32
-      Top = 200
-      Width = 96
-      Caption = 'WButton1'
-      TabOrder = 0
-      OnClick = WButton1Click
-    end
-    object WMemo1: TWMemo
-      Left = 8
-      Height = 176
+      Height = 23
       Top = 8
-      Width = 395
-      Lines.Strings = (
-        'WMemo1'
-      )
+      Width = 77
+      Caption = 'Add lane'
+      TabOrder = 0
+      OnClick = AddLaneButtonClick
+    end
+    object BoardListCombo: TWComboBox
+      Left = 688
+      Height = 23
+      Top = 8
+      Width = 102
+      ItemHeight = 23
       TabOrder = 1
     end
+    object AddBoardButton: TWButton
+      Left = 601
+      Height = 23
+      Top = 8
+      Width = 77
+      Caption = 'Add board'
+      TabOrder = 2
+    end
   end
-  object WFileButton1: TWFileButton
-    Left = 96
-    Height = 26
-    Top = 144
-    Width = 77
-    Caption = 'WFileButton1'
+  object BoardPanel: TWPanel
+    Left = 0
+    Height = 460
+    Top = 40
+    Width = 800
+    BevelOuter = bvNone
+    Caption = 'BoardPanel'
+    HandleId = 'lanes-container'
     TabOrder = 1
   end
 end

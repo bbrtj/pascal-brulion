@@ -1,0 +1,24 @@
+object LaneFrame: TLaneFrame
+  Left = 0
+  Height = 200
+  Top = 0
+  Width = 200
+  ClientHeight = 200
+  ClientWidth = 200
+  ParentFont = False
+  TabOrder = 0
+  OnResize = LaneFrameResize
+  DesignLeft = 299
+  DesignTop = 27
+  object WPanel1: TWPanel
+    Left = 0
+    Height = 200
+    Top = 0
+    Width = 200
+    BevelOuter = bvNone
+    Caption = 'WPanel1'
+    HandleClass = 'lane'
+    ParentColor = False
+    TabOrder = 0
+  end
+end
