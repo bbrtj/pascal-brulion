@@ -71,27 +71,26 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="brulion.html"/>
-        <IsPartOfProject Value="True"/>
-        <CustomData Count="2">
-          <Item0 Name="MaintainHTML" Value="1"/>
-          <Item1 Name="PasJSIsProjectHTMLFile" Value="1"/>
-        </CustomData>
-      </Unit>
-      <Unit>
-        <Filename Value="forms/mainform.pas"/>
+        <Filename Value="forms/mainwindow.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="MainForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="CustomForm"/>
-        <UnitName Value="MainForm"/>
+        <UnitName Value="MainWindow"/>
       </Unit>
       <Unit>
-        <Filename Value="forms/lanewidgets.pas"/>
+        <Filename Value="forms/lanescontainer.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="LaneFrame"/>
         <HasResources Value="True"/>
-        <UnitName Value="LaneWidgets"/>
+        <UnitName Value="LanesContainer"/>
+      </Unit>
+      <Unit>
+        <Filename Value="forms/newboard.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="NewBoardForm"/>
+        <ResourceBaseClass Value="CustomForm"/>
+        <UnitName Value="NewBoard"/>
       </Unit>
     </Units>
   </ProjectOptions>

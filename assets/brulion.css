@@ -2,16 +2,6 @@
 	background: var(--gb-bg0-hard);
 }
 
-/*#lanes-container {*/
-/*	display: flex !important;*/
-/*	overflow-x: auto !important;*/
-/*}*/
-/**/
-/*#lanes-container > * {*/
-/*	position: relative !important;*/
-/*	flex-shrink: 0;*/
-/*}*/
-
 .lane {
 	background: var(--gb-bg2);
 }
@@ -21,6 +11,11 @@
 }
 
 .lane-item {
+	border: solid 2px var(--accent);
+	border-radius: 20px;
+}
+
+.with-border {
 	border: solid 2px var(--accent);
 	border-radius: 20px;
 }

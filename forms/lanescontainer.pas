@@ -1,9 +1,10 @@
-unit LaneWidgets;
+unit LanesContainer;
 
 interface
 
 uses
-	JS, Classes, SysUtils, Graphics, Controls, Forms, Dialogs, WebCtrls;
+	JS, Classes, SysUtils, Graphics, Controls, Forms, Dialogs, WebCtrls,
+	UniqName;
 
 type
 
@@ -12,8 +13,6 @@ type
 	TLaneFrame = class(TWFrame)
 		WPanel1: TWPanel;
 		procedure LaneFrameResize(Sender: TObject);
-	private class var
-		LastName: Integer;
 	private
 		procedure SetParent(AValue: TWinControl);
 	public
@@ -43,12 +42,8 @@ end;
 constructor TLaneFrame.Create(AOwner: TComponent);
 begin
 	inherited Create(AOwner);
-
-	TLaneFrame.LastName += 1;
-	self.Name := self.Name + IntToStr(TLaneFrame.LastName);
+	SetUniqName(self);
 end;
 
-initialization
-	TLaneFrame.LastName := 0;
 end.
 

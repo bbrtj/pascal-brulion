@@ -1,11 +1,11 @@
-unit MainForm;
+unit MainWindow;
 
 interface
 
 uses
 	JS, Classes, SysUtils, Graphics, Controls, Forms, WebCtrls, StdCtrls,
 	Contnrs,
-	LaneWidgets, BrulionTypes, BrulionApiConnector;
+	NewBoard, LanesContainer, BrulionTypes, BrulionApiConnector;
 
 type
 
@@ -17,6 +17,7 @@ type
 		BoardListCombo: TWComboBox;
 		TopMenuPanel: TWPanel;
 		BoardPanel: TWPanel;
+		procedure AddBoardButtonClick(Sender: TObject);
 		procedure AddLaneButtonClick(Sender: TObject);
 		procedure LoadBoard(Sender: TObject);
 		procedure Load(Sender: TObject);
@@ -26,6 +27,7 @@ type
 	private
 		function TemporaryObject(AObject: TObject): TObject;
 		procedure UpdateBoards(Sender: TObject);
+		procedure CreateBoard(Sender: TObject; ModalResult: TModalResult);
 	public
 		constructor Create(AOwner: TComponent); override;
 		destructor Destroy(); override;
@@ -47,6 +49,11 @@ var
 begin
 	LLane := TLaneFrame.Create(self);
 	LLane.Parent := BoardPanel;
+end;
+
+procedure TMainForm.AddBoardButtonClick(Sender: TObject);
+begin
+	TNewBoardForm.Create(self).ShowModal(@CreateBoard);
 end;
 
 procedure TMainForm.LoadBoard(Sender: TObject);
@@ -91,6 +98,17 @@ begin
 
 	// not called automatically by modifying ItemIndex
 	LoadBoard(Sender);
+end;
+
+procedure TMainForm.CreateBoard(Sender: TObject; ModalResult: TModalResult);
+var
+	LModal: TNewBoardForm;
+begin
+	LModal := TNewBoardForm(Sender);
+	writeln(ModalResult);
+
+	Self.RemoveComponent(LModal);
+	LModal.Free;
 end;
 
 constructor TMainForm.Create(AOwner: TComponent);

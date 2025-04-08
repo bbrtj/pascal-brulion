@@ -34,6 +34,7 @@ type
 
 	generic TBrulionApiDataList<T> = class(TBrulionApiDataBase)
 	private type
+		TThisType = specialize TBrulionApiDataList<T>;
 		TArray = Array of T;
 	private
 		FValue: TArray;
@@ -41,6 +42,7 @@ type
 	public
 		function Pack(): String; override;
 		procedure Unpack(Value: TJsonData); override;
+		procedure Merge(Other: TThisType);
 		function HasBookmark(): Boolean;
 	public
 		property HasMoreData: Boolean read HasBookmark;
@@ -146,6 +148,11 @@ begin
 	end;
 end;
 
+procedure TBrulionApiDataList.Merge(Other: TThisType);
+begin
+	self.Value := Concat(self.Value, Other.Value);
+end;
+
 function TBrulionApiDataList.HasBookmark(): Boolean;
 begin
 	result := length(FBookmark) > 0;
@@ -214,12 +221,16 @@ end;
 
 function Serialize(Value: TBoardData): TJsonData;
 begin
-	// TODO
+	result := TJsonObject.Create;
+	TJsonObject(result).Add('id', Value.Id);
+	TJsonObject(result).Add('name', Value.Name);
 end;
 
 function Serialize(Value: TLaneData): TJsonData;
 begin
-	// TODO
+	result := TJsonObject.Create;
+	TJsonObject(result).Add('id', Value.Id);
+	TJsonObject(result).Add('name', Value.Name);
 end;
 
 function DeSerialize(Value: TJsonData; const Template: TBoardData): TBoardData;

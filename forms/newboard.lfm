@@ -1,0 +1,32 @@
+object NewBoardForm: TNewBoardForm
+  Left = 299
+  Height = 240
+  Top = 250
+  Width = 320
+  AlphaBlend = False
+  AlphaBlendValue = 255
+  Caption = 'NewBoardForm'
+  ClientHeight = 240
+  ClientWidth = 320
+  DesignTimePPI = 98
+  HandleClass = 'with-border'
+  ScalingDesign = True
+  object ConfirmButton: TWButton
+    Left = 232
+    Height = 26
+    Top = 208
+    Width = 77
+    Caption = 'Add'
+    TabOrder = 0
+    OnClick = ConfirmButtonClick
+  end
+  object CancelButton: TWButton
+    Left = 144
+    Height = 26
+    Top = 208
+    Width = 77
+    Caption = 'Cancel'
+    TabOrder = 1
+    OnClick = CancelButtonClick
+  end
+end
