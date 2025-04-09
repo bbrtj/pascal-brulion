@@ -49,6 +49,7 @@ var
 begin
 	LLane := TLaneFrame.Create(self);
 	LLane.Parent := BoardPanel;
+	BoardListCombo.ReAlign;
 end;
 
 procedure TMainForm.AddBoardButtonClick(Sender: TObject);

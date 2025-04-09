@@ -89,6 +89,7 @@
         <Filename Value="forms/newboard.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="NewBoardForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="CustomForm"/>
         <UnitName Value="NewBoard"/>
       </Unit>

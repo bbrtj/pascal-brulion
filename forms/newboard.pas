@@ -14,6 +14,8 @@ type
  TNewBoardForm = class(TWForm)
 		ConfirmButton: TWButton;
 		CancelButton: TWButton;
+		NameEdit: TWEdit;
+		NameLabel: TWLabel;
 		procedure CancelButtonClick(Sender: TObject);
 		procedure ConfirmButtonClick(Sender: TObject);
 	private

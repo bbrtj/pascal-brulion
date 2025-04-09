@@ -35,21 +35,29 @@ object MainForm: TMainForm
       Height = 23
       Top = 8
       Width = 102
+      Anchors = [akTop, akRight]
       ItemHeight = 23
       TabOrder = 1
       OnChange = LoadBoard
     end
     object AddBoardButton: TWButton
-      Left = 601
+      AnchorSideTop.Control = BoardListCombo
+      AnchorSideRight.Control = BoardListCombo
+      Left = 603
       Height = 23
       Top = 8
       Width = 77
+      Anchors = [akTop, akRight]
+      BorderSpacing.Right = 8
       Caption = 'Add board'
       TabOrder = 2
       OnClick = AddBoardButtonClick
     end
   end
   object BoardPanel: TWPanel
+    AnchorSideLeft.Control = TopMenuPanel
+    AnchorSideTop.Control = TopMenuPanel
+    AnchorSideTop.Side = asrBottom
     Left = 0
     Height = 460
     Top = 40
