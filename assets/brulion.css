@@ -20,3 +20,17 @@
 	border-radius: 20px;
 }
 
+.button-danger {
+	background-color: var(--gb-dark-red);
+	border-color: var(--gb-dark-red);
+}
+
+.button-danger:enabled:hover {
+	background-color: var(--gb-light-red);
+	border-color: var(--gb-light-red);
+}
+
+.button-danger:focus-visible {
+	outline-color:var(--gb-light-red);
+}
+

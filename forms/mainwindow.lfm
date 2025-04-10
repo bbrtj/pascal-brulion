@@ -30,28 +30,45 @@ object MainForm: TMainForm
       TabOrder = 0
       OnClick = AddLaneButtonClick
     end
-    object BoardListCombo: TWComboBox
-      Left = 688
-      Height = 23
-      Top = 8
-      Width = 102
-      Anchors = [akTop, akRight]
-      ItemHeight = 23
-      TabOrder = 1
-      OnChange = LoadBoard
-    end
     object AddBoardButton: TWButton
       AnchorSideTop.Control = BoardListCombo
       AnchorSideRight.Control = BoardListCombo
-      Left = 603
+      Left = 575
       Height = 23
       Top = 8
       Width = 77
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 8
       Caption = 'Add board'
-      TabOrder = 2
+      TabOrder = 1
       OnClick = AddBoardButtonClick
+    end
+    object BoardListCombo: TWComboBox
+      AnchorSideTop.Control = DeleteBoardButton
+      AnchorSideRight.Control = DeleteBoardButton
+      Left = 660
+      Height = 23
+      Top = 8
+      Width = 102
+      Anchors = [akTop, akRight]
+      BorderSpacing.Right = 8
+      ItemHeight = 23
+      TabOrder = 2
+      OnChange = EnterBoard
+    end
+    object DeleteBoardButton: TWButton
+      Left = 770
+      Height = 23
+      Hint = 'Delete this board permanently'
+      Top = 8
+      Width = 23
+      Anchors = [akTop, akRight]
+      Caption = 'X'
+      HandleClass = 'button-danger'
+      ParentShowHint = False
+      ShowHint = True
+      TabOrder = 3
+      OnClick = DeleteBoard
     end
   end
   object BoardPanel: TWPanel

@@ -17,16 +17,25 @@ type
 		BoardListCombo: TWComboBox;
 		TopMenuPanel: TWPanel;
 		BoardPanel: TWPanel;
+		DeleteBoardButton: TWButton;
 		procedure AddBoardButtonClick(Sender: TObject);
 		procedure AddLaneButtonClick(Sender: TObject);
-		procedure LoadBoard(Sender: TObject);
+		procedure DeleteBoard(Sender: TObject);
+		procedure EnterBoard(Sender: TObject);
 		procedure Load(Sender: TObject);
 	private
-		FBoardData: TBoardsApiDataList;
+		FBoardsApi: TBoardsApi;
+		FBoardData: TBoardDataArray;
+		FCurrentBoardId: TUlid;
 		FTemporaryObjects: TObjectList;
+		procedure BoardComboReload;
+		procedure CreateBoardComplete(Sender: TObject);
+		procedure DeleteBoardComplete(Sender: TObject);
+		procedure LoadBoard(const Id: TUlid);
+		procedure LoadBoardComplete(Sender: TObject);
 	private
 		function TemporaryObject(AObject: TObject): TObject;
-		procedure UpdateBoards(Sender: TObject);
+		procedure LoadBoardsComplete(Sender: TObject);
 		procedure CreateBoard(Sender: TObject; ModalResult: TModalResult);
 	public
 		constructor Create(AOwner: TComponent); override;
@@ -52,14 +61,21 @@ begin
 	BoardListCombo.ReAlign;
 end;
 
+procedure TMainForm.DeleteBoard(Sender: TObject);
+begin
+	FBoardsApi.DeleteBoard(@DeleteBoardComplete, FCurrentBoardId);
+end;
+
 procedure TMainForm.AddBoardButtonClick(Sender: TObject);
 begin
 	TNewBoardForm.Create(self).ShowModal(@CreateBoard);
 end;
 
-procedure TMainForm.LoadBoard(Sender: TObject);
+procedure TMainForm.EnterBoard(Sender: TObject);
 begin
+
 	if BoardListCombo.ItemIndex >= 0 then begin
+		FCurrentBoardId := TWrappedBoardData(BoardListCombo.Items.Objects[BoardListCombo.ItemIndex]).Data.Id;
 		writeln(TWrappedBoardData(BoardListCombo.Items.Objects[BoardListCombo.ItemIndex]).Data.Id)
 	end
 	else begin
@@ -68,11 +84,65 @@ begin
 end;
 
 procedure TMainForm.Load(Sender: TObject);
-var
-	LBoardsApi: TBoardsApi;
 begin
-	LBoardsApi := TBoardsApi.Create;
-	LBoardsApi.LoadBoards(@self.UpdateBoards);
+	FBoardsApi.LoadBoards(@self.LoadBoardsComplete);
+end;
+
+procedure TMainForm.BoardComboReload;
+var
+	I, WantedIndex: Integer;
+begin
+	WantedIndex := -1;
+	BoardListCombo.Clear;
+
+   	for I := 0 to High(FBoardData) do begin
+   		BoardListCombo.AddItem(
+   			FBoardData[I].Name,
+   			TemporaryObject(TWrappedBoardData.Create(FBoardData[I]))
+   		);
+
+		if FBoardData[I].Id = FCurrentBoardId then
+			WantedIndex := I;
+   	end;
+
+   	if WantedIndex >= 0 then
+   		BoardListCombo.ItemIndex := WantedIndex;
+end;
+
+procedure TMainForm.CreateBoardComplete(Sender: TObject);
+begin
+	FCurrentBoardId := TGeneralSuccessApiData(Sender).Value.Id;
+	LoadBoard(FCurrentBoardId);
+end;
+
+procedure TMainForm.DeleteBoardComplete(Sender: TObject);
+var
+	I, J: Integer;
+	LNewBoardData: TBoardDataArray;
+begin
+	SetLength(LNewBoardData, Length(FBoardData) - 1);
+	J := 0;
+	for I := 0 to High(FBoardData) do begin
+		if FBoardData[I].Id = FCurrentBoardId then
+			continue;
+		LNewBoardData[J] := FBoardData[I];
+		Inc(J);
+	end;
+
+	FBoardData := LNewBoardData;
+	FCurrentBoardId := '';
+	BoardComboReload;
+end;
+
+procedure TMainForm.LoadBoard(const Id: TUlid);
+begin
+	FBoardsApi.LoadBoard(@LoadBoardComplete, Id);
+end;
+
+procedure TMainForm.LoadBoardComplete(Sender: TObject);
+begin
+	FBoardData := Concat([TBoardsApiData(Sender).Value], FBoardData);
+	BoardComboReload;
 end;
 
 function TMainForm.TemporaryObject(AObject: TObject): TObject;
@@ -81,24 +151,16 @@ begin
 	result := AObject;
 end;
 
-procedure TMainForm.UpdateBoards(Sender: TObject);
+procedure TMainForm.LoadBoardsComplete(Sender: TObject);
 var
-	I: Integer;
+	LResponse: TBoardsApiDataList;
 begin
-	FBoardData := Sender as TBoardsApiDataList;
-	for I := 0 to High(FBoardData.Value) do begin
-		BoardListCombo.AddItem(
-			FBoardData.Value[I].Name,
-			TemporaryObject(TWrappedBoardData.Create(FBoardData.Value[I]))
-		);
-	end;
-
-	// TODO: last used board (stored in webpage memory)
-	if length(FBoardData.Value) > 0 then
-		BoardListCombo.ItemIndex := 0;
-
-	// not called automatically by modifying ItemIndex
-	LoadBoard(Sender);
+	LResponse := Sender as TBoardsApiDataList;
+	// TODO: handle pagination
+   	// TODO: last used board (stored in webpage memory)
+	FBoardData := LResponse.Value;
+	BoardComboReload;
+	EnterBoard(Sender);
 end;
 
 procedure TMainForm.CreateBoard(Sender: TObject; ModalResult: TModalResult);
@@ -106,7 +168,9 @@ var
 	LModal: TNewBoardForm;
 begin
 	LModal := TNewBoardForm(Sender);
-	writeln(ModalResult);
+	if ModalResult = mrOk then begin
+		FBoardsApi.CreateBoard(@CreateBoardComplete, LModal.NewBoardData);
+	end;
 
 	Self.RemoveComponent(LModal);
 	LModal.Free;
@@ -116,11 +180,12 @@ constructor TMainForm.Create(AOwner: TComponent);
 begin
 	inherited Create(AOwner);
 	FTemporaryObjects := TObjectList.Create;
+	FBoardsApi := TBoardsApi.Create;
 end;
 
 destructor TMainForm.Destroy();
 begin
-	FBoardData.Free;
+	FBoardsApi.Free;
 	FTemporaryObjects.Free;
 	inherited;
 end;

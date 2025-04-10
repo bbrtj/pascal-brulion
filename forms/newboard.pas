@@ -5,7 +5,8 @@ unit NewBoard;
 interface
 
 uses
-	JS, Classes, SysUtils, Graphics, Controls, Forms, Dialogs, WebCtrls;
+	JS, Classes, SysUtils, Graphics, Controls, Forms, Dialogs, WebCtrls,
+	BrulionTypes;
 
 type
 
@@ -16,12 +17,11 @@ type
 		CancelButton: TWButton;
 		NameEdit: TWEdit;
 		NameLabel: TWLabel;
-		procedure CancelButtonClick(Sender: TObject);
-		procedure ConfirmButtonClick(Sender: TObject);
 	private
+		function GetNewBoardData: TBoardData;
 
 	public
-
+		property NewBoardData: TBoardData read GetNewBoardData;
 	end;
 
 implementation
@@ -30,14 +30,9 @@ implementation
 
 { TNewBoardForm }
 
-procedure TNewBoardForm.CancelButtonClick(Sender: TObject);
+function TNewBoardForm.GetNewBoardData: TBoardData;
 begin
-	Close;
-end;
-
-procedure TNewBoardForm.ConfirmButtonClick(Sender: TObject);
-begin
-	Close;
+	result.Name := NameEdit.Text;
 end;
 
 end.

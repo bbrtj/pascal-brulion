@@ -17,6 +17,16 @@ type
 		constructor Create(AData: T);
 	end;
 
+	TGeneralSuccessData = record
+		Id: TUlid;
+	end;
+	TWrappedGeneralSuccessData = specialize TWrappedRecord<TGeneralSuccessData>;
+
+	TGeneralErrorData = record
+		Error: String;
+	end;
+	TWrappedGeneralErrorData = specialize TWrappedRecord<TGeneralErrorData>;
+
 	TBoardData = record
 		Id: TUlid;
 		Name: String;
