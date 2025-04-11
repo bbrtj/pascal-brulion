@@ -87,3 +87,35 @@
 	--disabled: var(--gb-dark-gray);
 }
 
+body {
+	background: var(--bg);
+	color: var(--text);
+}
+
+button {
+	background: var(--accent);
+	color: var(--accent-text);
+	border: 1px solid var(--accent);
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+button:hover {
+	background: var(--accent-hover);
+}
+
+select {
+	background: var(--bg);
+	border: 1px solid var(--accent-bg);
+	border-radius: 5px;
+	padding-left: 10px;
+}
+
+select:hover {
+	background: var(--accent-bg);
+}
+
+*:focus-visible {
+	outline: 3px solid var(--code);
+}
+

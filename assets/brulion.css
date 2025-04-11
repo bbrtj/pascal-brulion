@@ -12,12 +12,12 @@
 
 .lane-item {
 	border: solid 2px var(--accent);
-	border-radius: 20px;
+	border-radius: 5px;
 }
 
 .with-border {
 	border: solid 2px var(--accent);
-	border-radius: 20px;
+	border-radius: 5px;
 }
 
 .button-danger {
@@ -28,9 +28,5 @@
 .button-danger:enabled:hover {
 	background-color: var(--gb-light-red);
 	border-color: var(--gb-light-red);
-}
-
-.button-danger:focus-visible {
-	outline-color:var(--gb-light-red);
 }
 
