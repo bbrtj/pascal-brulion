@@ -3,8 +3,8 @@ unit MainWindow;
 interface
 
 uses
-	JS, Classes, SysUtils, Graphics, Controls, Forms, WebCtrls, StdCtrls,
-	Contnrs,
+	JS, Web, Classes, SysUtils, Graphics, Controls, Forms, WebCtrls, StdCtrls,
+	Contnrs, Dialogs,
 	NewBoard, LanesContainer, BrulionTypes, BrulionApiConnector;
 
 type
@@ -28,9 +28,11 @@ type
 		FBoardData: TBoardDataArray;
 		FCurrentBoardId: TUlid;
 		FTemporaryObjects: TObjectList;
+		procedure SetCurrentBoard(Id: TUlid);
 		procedure BoardComboReload;
 		procedure CreateBoardComplete(Sender: TObject);
 		procedure DeleteBoardComplete(Sender: TObject);
+		procedure DeleteBoardConfirmed(Sender: TObject; ModalResult: TModalResult);
 		procedure LoadBoard(const Id: TUlid);
 		procedure LoadBoardComplete(Sender: TObject);
 	private
@@ -52,6 +54,12 @@ implementation
 
 { TMainForm }
 
+procedure TMainForm.DeleteBoardConfirmed(Sender: TObject; ModalResult: TModalResult);
+begin
+	if ModalResult = mrYes then
+		FBoardsApi.DeleteBoard(@DeleteBoardComplete, FCurrentBoardId);
+end;
+
 procedure TMainForm.AddLaneButtonClick(Sender: TObject);
 var
 	LLane: TLaneFrame;
@@ -62,8 +70,19 @@ begin
 end;
 
 procedure TMainForm.DeleteBoard(Sender: TObject);
+var
+	LBoardName: String;
+	I: Integer;
 begin
-	FBoardsApi.DeleteBoard(@DeleteBoardComplete, FCurrentBoardId);
+	if Length(FCurrentBoardId) = 0 then exit;
+
+	for I := 0 to High(FBoardData) do begin
+		if FBoardData[I].Id <> FCurrentBoardId then continue;
+		LBoardName := FBoardData[I].Name;
+		break;
+	end;
+
+	MessageDlg(Self, 'Permanently delete board "' + LBoardName + '"?', mtWarning, mbYesNo, mbNo, @DeleteBoardConfirmed);
 end;
 
 procedure TMainForm.AddBoardButtonClick(Sender: TObject);
@@ -73,10 +92,8 @@ end;
 
 procedure TMainForm.EnterBoard(Sender: TObject);
 begin
-
 	if BoardListCombo.ItemIndex >= 0 then begin
-		FCurrentBoardId := TWrappedBoardData(BoardListCombo.Items.Objects[BoardListCombo.ItemIndex]).Data.Id;
-		writeln(TWrappedBoardData(BoardListCombo.Items.Objects[BoardListCombo.ItemIndex]).Data.Id)
+		SetCurrentBoard(TWrappedBoardData(BoardListCombo.Items.Objects[BoardListCombo.ItemIndex]).Data.Id);
 	end
 	else begin
 		// TODO: clear board
@@ -86,6 +103,13 @@ end;
 procedure TMainForm.Load(Sender: TObject);
 begin
 	FBoardsApi.LoadBoards(@self.LoadBoardsComplete);
+	FCurrentBoardId := window.localStorage.getItem('current_board');
+end;
+
+procedure TMainForm.SetCurrentBoard(Id: TUlid);
+begin
+	FCurrentBoardId := Id;
+	window.localStorage.setItem('current_board', Id);
 end;
 
 procedure TMainForm.BoardComboReload;
@@ -111,7 +135,7 @@ end;
 
 procedure TMainForm.CreateBoardComplete(Sender: TObject);
 begin
-	FCurrentBoardId := TGeneralSuccessApiData(Sender).Value.Id;
+	SetCurrentBoard(TGeneralSuccessApiData(Sender).Value.Id);
 	LoadBoard(FCurrentBoardId);
 end;
 
@@ -130,7 +154,10 @@ begin
 	end;
 
 	FBoardData := LNewBoardData;
-	FCurrentBoardId := '';
+	SetCurrentBoard('');
+	if Length(FBoardData) > 0 then
+		SetCurrentBoard(FBoardData[0].Id);
+
 	BoardComboReload;
 end;
 
