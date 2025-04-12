@@ -18,8 +18,10 @@ type
 		NameEdit: TWEdit;
 		NameLabel: TWLabel;
 	private
+		FBoardData: TBoardData;
 		function GetNewBoardData: TBoardData;
-
+	public
+		destructor Destroy; override;
 	public
 		property NewBoardData: TBoardData read GetNewBoardData;
 	end;
@@ -30,9 +32,18 @@ implementation
 
 { TNewBoardForm }
 
+destructor TNewBoardForm.Destroy();
+begin
+	FBoardData.Free;
+end;
+
 function TNewBoardForm.GetNewBoardData: TBoardData;
 begin
-	result.Name := NameEdit.Text;
+	FBoardData.Free;
+	FBoardData := TBoardData.Create;
+	FBoardData.Name := NameEdit.Text;
+
+	result := FBoardData;
 end;
 
 end.

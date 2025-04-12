@@ -5,7 +5,7 @@ interface
 uses
 	JS, Web, Classes, SysUtils, Graphics, Controls, Forms, WebCtrls, StdCtrls,
 	Contnrs, Dialogs,
-	NewBoard, LanesContainer, BrulionTypes, BrulionApiConnector;
+	NewBoard, LanesContainer, BrulionTypes, BrulionApiConnector, BrulionState;
 
 type
 
@@ -24,19 +24,14 @@ type
 		procedure EnterBoard(Sender: TObject);
 		procedure Load(Sender: TObject);
 	private
+		FState: TBrulionState;
 		FBoardsApi: TBoardsApi;
-		FBoardData: TBoardDataArray;
-		FCurrentBoardId: TUlid;
-		FTemporaryObjects: TObjectList;
-		procedure SetCurrentBoard(Id: TUlid);
 		procedure BoardComboReload;
 		procedure CreateBoardComplete(Sender: TObject);
 		procedure DeleteBoardComplete(Sender: TObject);
 		procedure DeleteBoardConfirmed(Sender: TObject; ModalResult: TModalResult);
-		procedure LoadBoard(const Id: TUlid);
 		procedure LoadBoardComplete(Sender: TObject);
 	private
-		function TemporaryObject(AObject: TObject): TObject;
 		procedure LoadBoardsComplete(Sender: TObject);
 		procedure CreateBoard(Sender: TObject; ModalResult: TModalResult);
 	public
@@ -57,7 +52,7 @@ implementation
 procedure TMainForm.DeleteBoardConfirmed(Sender: TObject; ModalResult: TModalResult);
 begin
 	if ModalResult = mrYes then
-		FBoardsApi.DeleteBoard(@DeleteBoardComplete, FCurrentBoardId);
+		FBoardsApi.DeleteBoard(@DeleteBoardComplete, FState.Boards.Current.Id);
 end;
 
 procedure TMainForm.AddLaneButtonClick(Sender: TObject);
@@ -70,19 +65,17 @@ begin
 end;
 
 procedure TMainForm.DeleteBoard(Sender: TObject);
-var
-	LBoardName: String;
-	I: Integer;
 begin
-	if Length(FCurrentBoardId) = 0 then exit;
+	if FState.Boards.Current = nil then exit;
 
-	for I := 0 to High(FBoardData) do begin
-		if FBoardData[I].Id <> FCurrentBoardId then continue;
-		LBoardName := FBoardData[I].Name;
-		break;
-	end;
-
-	MessageDlg(Self, 'Permanently delete board "' + LBoardName + '"?', mtWarning, mbYesNo, mbNo, @DeleteBoardConfirmed);
+	MessageDlg(
+		Self,
+		Format('Permanently delete board "%s"?', [FState.Boards.Current.Name]),
+		mtWarning,
+		mbYesNo,
+		mbNo,
+		@DeleteBoardConfirmed
+	);
 end;
 
 procedure TMainForm.AddBoardButtonClick(Sender: TObject);
@@ -93,7 +86,7 @@ end;
 procedure TMainForm.EnterBoard(Sender: TObject);
 begin
 	if BoardListCombo.ItemIndex >= 0 then begin
-		SetCurrentBoard(TWrappedBoardData(BoardListCombo.Items.Objects[BoardListCombo.ItemIndex]).Data.Id);
+		FState.Boards.Current := TBoardData(BoardListCombo.Items.Objects[BoardListCombo.ItemIndex]);
 	end
 	else begin
 		// TODO: clear board
@@ -103,79 +96,49 @@ end;
 procedure TMainForm.Load(Sender: TObject);
 begin
 	FBoardsApi.LoadBoards(@self.LoadBoardsComplete);
-	FCurrentBoardId := window.localStorage.getItem('current_board');
-end;
-
-procedure TMainForm.SetCurrentBoard(Id: TUlid);
-begin
-	FCurrentBoardId := Id;
-	window.localStorage.setItem('current_board', Id);
 end;
 
 procedure TMainForm.BoardComboReload;
 var
-	I, WantedIndex: Integer;
+	I: Integer;
 begin
-	WantedIndex := -1;
 	BoardListCombo.Clear;
 
-   	for I := 0 to High(FBoardData) do begin
-   		BoardListCombo.AddItem(
-   			FBoardData[I].Name,
-   			TemporaryObject(TWrappedBoardData.Create(FBoardData[I]))
-   		);
+	for I := 0 to FState.Boards.Count - 1 do begin
+		BoardListCombo.AddItem(
+			FState.Boards.Items[I].Name,
+			FState.Boards.Items[I]
+		);
+	end;
 
-		if FBoardData[I].Id = FCurrentBoardId then
-			WantedIndex := I;
-   	end;
-
-   	if WantedIndex >= 0 then
-   		BoardListCombo.ItemIndex := WantedIndex;
+	if FState.Boards.Current <> nil then
+		BoardListCombo.ItemIndex := FState.Boards.CurrentIndex;
 end;
 
 procedure TMainForm.CreateBoardComplete(Sender: TObject);
 begin
-	SetCurrentBoard(TGeneralSuccessApiData(Sender).Value.Id);
-	LoadBoard(FCurrentBoardId);
+	FBoardsApi.LoadBoard(@LoadBoardComplete, TGeneralSuccessApiData(Sender).Value.Id);
 end;
 
 procedure TMainForm.DeleteBoardComplete(Sender: TObject);
-var
-	I, J: Integer;
-	LNewBoardData: TBoardDataArray;
 begin
-	SetLength(LNewBoardData, Length(FBoardData) - 1);
-	J := 0;
-	for I := 0 to High(FBoardData) do begin
-		if FBoardData[I].Id = FCurrentBoardId then
-			continue;
-		LNewBoardData[J] := FBoardData[I];
-		Inc(J);
-	end;
+	FState.Boards.Remove(FState.Boards.Current);
 
-	FBoardData := LNewBoardData;
-	SetCurrentBoard('');
-	if Length(FBoardData) > 0 then
-		SetCurrentBoard(FBoardData[0].Id);
+	if FState.Boards.Count > 0 then
+		FState.Boards.Current := FState.Boards.Items[0];
 
 	BoardComboReload;
-end;
-
-procedure TMainForm.LoadBoard(const Id: TUlid);
-begin
-	FBoardsApi.LoadBoard(@LoadBoardComplete, Id);
 end;
 
 procedure TMainForm.LoadBoardComplete(Sender: TObject);
+var
+	LBoard: TBoardData;
 begin
-	FBoardData := Concat([TBoardsApiData(Sender).Value], FBoardData);
-	BoardComboReload;
-end;
+	LBoard := TBoardsApiData(Sender).Snatch;
+	FState.Boards.Add([LBoard]);
+	FState.Boards.Current := LBoard;
 
-function TMainForm.TemporaryObject(AObject: TObject): TObject;
-begin
-	FTemporaryObjects.Add(AObject);
-	result := AObject;
+	BoardComboReload;
 end;
 
 procedure TMainForm.LoadBoardsComplete(Sender: TObject);
@@ -184,10 +147,10 @@ var
 begin
 	LResponse := Sender as TBoardsApiDataList;
 	// TODO: handle pagination
-   	// TODO: last used board (stored in webpage memory)
-	FBoardData := LResponse.Value;
+	FState.Boards.Clear;
+	FState.Boards.Init(LResponse.Value);
 	BoardComboReload;
-	EnterBoard(Sender);
+	// TODO: draw board
 end;
 
 procedure TMainForm.CreateBoard(Sender: TObject; ModalResult: TModalResult);
@@ -195,9 +158,8 @@ var
 	LModal: TNewBoardForm;
 begin
 	LModal := TNewBoardForm(Sender);
-	if ModalResult = mrOk then begin
+	if ModalResult = mrOk then
 		FBoardsApi.CreateBoard(@CreateBoardComplete, LModal.NewBoardData);
-	end;
 
 	Self.RemoveComponent(LModal);
 	LModal.Free;
@@ -206,14 +168,14 @@ end;
 constructor TMainForm.Create(AOwner: TComponent);
 begin
 	inherited Create(AOwner);
-	FTemporaryObjects := TObjectList.Create;
+	FState := TBrulionState.Create;
 	FBoardsApi := TBoardsApi.Create;
 end;
 
 destructor TMainForm.Destroy();
 begin
 	FBoardsApi.Free;
-	FTemporaryObjects.Free;
+	FState.Free;
 	inherited;
 end;
 

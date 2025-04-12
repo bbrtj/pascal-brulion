@@ -25,17 +25,20 @@ type
 		procedure Unpack(const Data: String); virtual;
 	end;
 
-	generic TBrulionApiDataSingle<T> = class(TBrulionApiDataBase)
+	generic TBrulionApiDataSingle<T: TBrulionData> = class(TBrulionApiDataBase)
 	private
 		FValue: T;
 	public
+		destructor Destroy; override;
+	public
 		function Pack(): String; override;
 		procedure Unpack(Value: TJsonData); override;
+		function Snatch(): T;
 	public
 		property Value: T read FValue write FValue;
 	end;
 
-	generic TBrulionApiDataList<T> = class(TBrulionApiDataBase)
+	generic TBrulionApiDataList<T: TBrulionData> = class(TBrulionApiDataBase)
 	private type
 		TThisType = specialize TBrulionApiDataList<T>;
 		TArray = Array of T;
@@ -117,11 +120,10 @@ function Serialize(const Value: TGeneralErrorData; Stage: TSerializationStage = 
 function Serialize(const Value: TBoardData; Stage: TSerializationStage = ssFull): TJsonData;
 function Serialize(const Value: TLaneData; Stage: TSerializationStage = ssFull): TJsonData;
 
-// Template is not used - it's a hack to force function overloading to work.
-function DeSerialize(Value: TJsonData; const Template: TGeneralSuccessData): TGeneralSuccessData;
-function DeSerialize(Value: TJsonData; const Template: TGeneralErrorData): TGeneralErrorData;
-function DeSerialize(Value: TJsonData; const Template: TBoardData): TBoardData;
-function DeSerialize(Value: TJsonData; const Template: TLaneData): TLaneData;
+procedure DeSerialize(Value: TJsonData; Obj: TGeneralSuccessData);
+procedure DeSerialize(Value: TJsonData; Obj: TGeneralErrorData);
+procedure DeSerialize(Value: TJsonData; Obj: TBoardData);
+procedure DeSerialize(Value: TJsonData; Obj: TLaneData);
 
 implementation
 
@@ -139,6 +141,11 @@ begin
 	end;
 end;
 
+destructor TBrulionApiDataSingle.Destroy();
+begin
+	FValue.Free;
+end;
+
 function TBrulionApiDataSingle.Pack(): String;
 var
 	LSerialized: TJsonData;
@@ -150,7 +157,21 @@ end;
 
 procedure TBrulionApiDataSingle.Unpack(Value: TJsonData);
 begin
-	FValue := DeSerialize(Value, FValue);
+	try
+		FValue := T.Create;
+		DeSerialize(Value, FValue);
+	except
+		on E: Exception do begin
+			FreeAndNil(FValue);
+			raise E;
+		end;
+	end;
+end;
+
+function TBrulionApiDataSingle.Snatch(): T;
+begin
+	result := FValue;
+	FValue := nil;
 end;
 
 function TBrulionApiDataList.Pack(): String;
@@ -180,10 +201,21 @@ begin
 		FBookmark := TJsonObject(Value).Elements['bookmark'].AsString;
 
 	LData := TJsonObject(Value).Arrays['data'];
-	SetLength(self.Value, LData.Count);
 
-	for I := 0 to LData.Count - 1 do begin
-		self.Value[I] := DeSerialize(LData[I], self.Value[I]);
+	SetLength(self.Value, LData.Count);
+	for I := 0 to High(self.Value) do
+		self.Value[I] := T.Create;
+
+	try
+		for I := 0 to High(self.Value) do
+			DeSerialize(LData[I], self.Value[I]);
+	except
+		on E: Exception do begin
+			for I := 0 to High(self.Value) do
+				FreeAndNil(self.Value[I]);
+
+			raise E;
+		end;
 	end;
 end;
 
@@ -378,27 +410,27 @@ begin
 	TJsonObject(result).Add('name', Value.Name);
 end;
 
-function DeSerialize(Value: TJsonData; const Template: TGeneralSuccessData): TGeneralSuccessData;
+procedure DeSerialize(Value: TJsonData; Obj: TGeneralSuccessData);
 begin
 	if not(
 		(Value is TJsonObject)
 		and (TJsonObject(Value).Elements['id'] is TJsonString)
 	) then raise EBrulionSerializer.Create('invalid api data');
 
-	result.Id := TJsonObject(Value).Strings['id'];
+	Obj.Id := TJsonObject(Value).Strings['id'];
 end;
 
-function DeSerialize(Value: TJsonData; const Template: TGeneralErrorData): TGeneralErrorData;
+procedure DeSerialize(Value: TJsonData; Obj: TGeneralErrorData);
 begin
 	if not(
 		(Value is TJsonObject)
 		and (TJsonObject(Value).Elements['error'] is TJsonString)
 	) then raise EBrulionSerializer.Create('invalid api error data');
 
-	result.Error := TJsonObject(Value).Strings['error'];
+	Obj.Error := TJsonObject(Value).Strings['error'];
 end;
 
-function DeSerialize(Value: TJsonData; const Template: TBoardData): TBoardData;
+procedure DeSerialize(Value: TJsonData; Obj: TBoardData);
 begin
 	if not(
 		(Value is TJsonObject)
@@ -406,11 +438,11 @@ begin
 		and (TJsonObject(Value).Elements['name'] is TJsonString)
 	) then raise EBrulionSerializer.Create('invalid api board data');
 
-	result.Id := TJsonObject(Value).Strings['id'];
-	result.Name := TJsonObject(Value).Strings['name'];
+	Obj.Id := TJsonObject(Value).Strings['id'];
+	Obj.Name := TJsonObject(Value).Strings['name'];
 end;
 
-function DeSerialize(Value: TJsonData; const Template: TLaneData): TLaneData;
+procedure DeSerialize(Value: TJsonData; Obj: TLaneData);
 begin
 	if not(
 		(Value is TJsonObject)
@@ -418,8 +450,8 @@ begin
 		and (TJsonObject(Value).Elements['name'] is TJsonString)
 	) then raise EBrulionSerializer.Create('invalid api lane data');
 
-	result.Id := TJsonObject(Value).Strings['id'];
-	result.Name := TJsonObject(Value).Strings['name'];
+	Obj.Id := TJsonObject(Value).Strings['id'];
+	Obj.Name := TJsonObject(Value).Strings['name'];
 end;
 
 end.
