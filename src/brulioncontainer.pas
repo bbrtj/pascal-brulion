@@ -73,8 +73,10 @@ end;
 initialization
 	GDefaultContainer := TContainer.Create;
 	GDefaultContainer.Storage := TLocalStorage.Create;
-// Not yet supported:
-// finalization
-// 	GDefaultContainer.Free;
+
+{$IFNDEF PAS2JS}
+finalization
+	GDefaultContainer.Free;
+{$ENDIF}
 end.
 

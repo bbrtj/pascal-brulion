@@ -10,7 +10,7 @@ const
 	CEmptyUlid = '';
 
 type
-	TUlid = type String;
+	TUlid = type String{$IFNDEF PAS2JS}[26]{$ENDIF};
 
 	TBrulionData = class
 	end;
