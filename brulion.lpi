@@ -86,6 +86,14 @@
         <UnitName Value="LanesContainer"/>
       </Unit>
       <Unit>
+        <Filename Value="forms/newlane.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="NewLaneForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="CustomForm"/>
+        <UnitName Value="NewLane"/>
+      </Unit>
+      <Unit>
         <Filename Value="forms/newboard.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="NewBoardForm"/>

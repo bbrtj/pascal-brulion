@@ -1,4 +1,4 @@
-object NewBoardForm: TNewBoardForm
+object NewLaneForm: TNewLaneForm
   Left = 299
   Height = 86
   Top = 250
@@ -6,7 +6,7 @@ object NewBoardForm: TNewBoardForm
   ActiveControl = NameEdit
   AlphaBlend = False
   AlphaBlendValue = 255
-  Caption = 'NewBoardForm'
+  Caption = 'NewLaneForm'
   ClientHeight = 86
   ClientWidth = 313
   HandleClass = 'with-border'

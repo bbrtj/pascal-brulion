@@ -4,21 +4,25 @@ interface
 
 uses
 	JS, Classes, SysUtils, Graphics, Controls, Forms, Dialogs, WebCtrls,
-	UniqName;
+	BrulionTypes, UniqName;
 
 type
 
 	{ TLaneFrame }
 
 	TLaneFrame = class(TWFrame)
+		LaneNameLabel: TWLabel;
 		WPanel1: TWPanel;
 		procedure LaneFrameResize(Sender: TObject);
 	private
-		procedure SetParent(AValue: TWinControl);
+		FLane: TLaneData;
+		procedure SetLane(AValue: TLaneData);
+  procedure SetParent(AValue: TWinControl);
 	public
 		constructor Create(AOwner: TComponent); override;
 	public
 		property Parent write SetParent;
+		property Lane: TLaneData read FLane write SetLane;
 	end;
 
 implementation
@@ -37,6 +41,13 @@ procedure TLaneFrame.SetParent(AValue: TWinControl);
 begin
 	inherited Parent := AValue;
 	self.Height := self.Parent.Height;
+end;
+
+procedure TLaneFrame.SetLane(AValue: TLaneData);
+begin
+	if FLane = AValue then Exit;
+	FLane := AValue;
+	LaneNameLabel.Caption := FLane.Name;
 end;
 
 constructor TLaneFrame.Create(AOwner: TComponent);

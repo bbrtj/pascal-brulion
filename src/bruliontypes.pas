@@ -32,9 +32,17 @@ type
 
 	TLaneData = class(TBrulionData)
 		Id: TUlid;
+		BoardId: TUlid;
 		Name: String;
 	end;
 	TLaneDataArray = Array of TLaneData;
+
+	TNoteData = class(TBrulionData)
+		Id: TUlid;
+		LaneId: TUlid;
+		Content: String;
+	end;
+	TNoteDataArray = Array of TNoteData;
 
 implementation
 

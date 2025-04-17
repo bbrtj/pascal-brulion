@@ -1,7 +1,5 @@
 unit NewBoard;
 
-{$mode ObjFPC}{$H+}
-
 interface
 
 uses

@@ -54,7 +54,7 @@ object MainForm: TMainForm
       BorderSpacing.Right = 8
       ItemHeight = 23
       TabOrder = 2
-      OnChange = EnterBoard
+      OnChange = BoardChanged
     end
     object DeleteBoardButton: TWButton
       Left = 770

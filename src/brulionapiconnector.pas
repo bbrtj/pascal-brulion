@@ -113,6 +113,17 @@ type
 		procedure CreateBoard(Event: TNotifyEvent; const Board: TBoardData);
 	end;
 
+	TLanesApiData = specialize TBrulionApiDataSingle<TLaneData>;
+	TLanesApiDataList = specialize TBrulionApiDataList<TLaneData>;
+	TLanesApi = class(TApi)
+	public
+		constructor Create();
+		procedure LoadLane(Event: TNotifyEvent; const Id: TUlid);
+		procedure DeleteLane(Event: TNotifyEvent; const Id: TUlid);
+		procedure LoadLanes(Event: TNotifyEvent; const BoardId: TUlid);
+		procedure CreateLane(Event: TNotifyEvent; const Lane: TLaneData);
+	end;
+
 function JoinUrl(const Base, Url: String): String;
 
 function Serialize(const Value: TGeneralSuccessData; Stage: TSerializationStage = ssFull): TJsonData;
@@ -371,6 +382,42 @@ begin
 	self.GetAjax(Event, TGeneralSuccessApiData.Create).Post(CUrl, Serialize(Board, ssInsert));
 end;
 
+constructor TLanesApi.Create();
+const
+	CBaseUrl = '/lanes';
+begin
+	inherited Create(CBaseUrl);
+end;
+
+procedure TLanesApi.LoadLane(Event: TNotifyEvent; const Id: TUlid);
+const
+	CUrl = '';
+begin
+	self.GetAjax(Event, TLanesApiData.Create).Get(JoinUrl(CUrl, Id));
+end;
+
+procedure TLanesApi.DeleteLane(Event: TNotifyEvent; const Id: TUlid);
+const
+	CUrl = '';
+begin
+	self.GetAjax(Event, TGeneralEmptyApiData.Create).Delete(JoinUrl(CUrl, Id));
+end;
+
+procedure TLanesApi.LoadLanes(Event: TNotifyEvent; const BoardId: TUlid);
+const
+	CUrl = '/board';
+begin
+	self.GetAjax(Event, TLanesApiDataList.Create).Get(JoinUrl(CUrl, BoardId));
+end;
+
+procedure TLanesApi.CreateLane(Event: TNotifyEvent; const Lane: TLaneData);
+const
+	CUrl = '';
+begin
+	self.GetAjax(Event, TGeneralSuccessApiData.Create).Post(CUrl, Serialize(Lane, ssInsert));
+end;
+
+
 function JoinUrl(const Base, Url: String): String;
 const
 	CUrlSeparator = '/';
@@ -407,6 +454,7 @@ begin
 	result := TJsonObject.Create;
 	if Stage <> ssInsert then
 		TJsonObject(result).Add('id', Value.Id);
+	TJsonObject(result).Add('board_id', Value.BoardId);
 	TJsonObject(result).Add('name', Value.Name);
 end;
 
@@ -447,10 +495,12 @@ begin
 	if not(
 		(Value is TJsonObject)
 		and (TJsonObject(Value).Elements['id'] is TJsonString)
+		and (TJsonObject(Value).Elements['board_id'] is TJsonString)
 		and (TJsonObject(Value).Elements['name'] is TJsonString)
 	) then raise EBrulionSerializer.Create('invalid api lane data');
 
 	Obj.Id := TJsonObject(Value).Strings['id'];
+	Obj.BoardId := TJsonObject(Value).Strings['board_id'];
 	Obj.Name := TJsonObject(Value).Strings['name'];
 end;
 

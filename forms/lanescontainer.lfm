@@ -17,8 +17,18 @@ object LaneFrame: TLaneFrame
     Width = 200
     BevelOuter = bvNone
     Caption = 'WPanel1'
+    ClientHeight = 200
+    ClientWidth = 200
     HandleClass = 'lane'
     ParentColor = False
     TabOrder = 0
+    object LaneNameLabel: TWLabel
+      Left = 8
+      Height = 15
+      Top = 8
+      Width = 184
+      AutoSize = False
+      Caption = 'LaneNameLabel'
+    end
   end
 end
