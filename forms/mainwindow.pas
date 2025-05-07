@@ -136,7 +136,7 @@ begin
 	end;
 
 	for I := 0 to FState.Lanes.Count - 1 do begin
-		LLaneFrame := TLaneFrame.Create(BoardPanel);
+		LLaneFrame := TLaneFrame.Create(self);
 	   	LLaneFrame.Parent := BoardPanel;
 		LLaneFrame.Lane := FState.Lanes.Items[I];
 	end;

@@ -22,15 +22,19 @@ type
 		procedure SetItem(const Name, Value: String); override;
 	end;
 
+	TContainerSlots = (
+		csStorage
+		csBoardsApi
+		csLanesApi
+		csState
+	);
+
 	TContainer = class(TPersistent)
 	private
-		FStorage: TStorage;
-	public
-		destructor Destroy; override;
+		FSlots = Array[TContainerSlots] of TObject;
+		FSlotsOwned = Array[TContainerSlots] of Boolean;
 	public
 		procedure Assign(Other: TContainer);
-	public
-		property Storage: TStorage read FStorage write FStorage;
 	end;
 
 var
@@ -50,14 +54,23 @@ begin
 	window.localStorage.setItem(Name, Value);
 end;
 
+procedure TContainer.SetStorage(AStorage: TStorage);
+begin
+	FOwnsStorage := True;
+	FStorage := AStorage;
+end;
+
 destructor TContainer.Destroy();
 begin
-	FStorage.Free;
+	if FOwnsStorage then
+		FStorage.Free;
+
 	inherited;
 end;
 
 procedure TContainer.Assign(Other: TContainer);
 begin
+	FOwnsStorage := False;
 	FStorage := Other.Storage;
 end;
 

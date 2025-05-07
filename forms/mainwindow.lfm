@@ -7,7 +7,6 @@ object MainForm: TMainForm
   AlphaBlendValue = 255
   ClientHeight = 500
   ClientWidth = 800
-  DesignTimePPI = 98
   OnCreate = Load
   ScalingDesign = True
   object TopMenuPanel: TWPanel

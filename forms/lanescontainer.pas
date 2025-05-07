@@ -12,8 +12,10 @@ type
 
 	TLaneFrame = class(TWFrame)
 		LaneNameLabel: TWLabel;
+		DeleteLaneButton: TWButton;
 		WPanel1: TWPanel;
-		procedure LaneFrameResize(Sender: TObject);
+		procedure DeleteLane(Sender: TObject);
+  procedure LaneFrameResize(Sender: TObject);
 	private
 		FLane: TLaneData;
 		procedure SetLane(AValue: TLaneData);
@@ -33,8 +35,21 @@ implementation
 
 procedure TLaneFrame.LaneFrameResize(Sender: TObject);
 begin
-	self.WPanel1.Height := self.Height;
 	self.WPanel1.Width := self.Width;
+end;
+
+procedure TLaneFrame.DeleteLane(Sender: TObject);
+begin
+	if FState.Boards.Current = nil then exit;
+
+	MessageDlg(
+		Self,
+		Format('Permanently delete board "%s"?', [FState.Boards.Current.Name]),
+		mtWarning,
+		mbYesNo,
+		mbNo,
+		@DeleteBoardConfirmed
+	);
 end;
 
 procedure TLaneFrame.SetParent(AValue: TWinControl);

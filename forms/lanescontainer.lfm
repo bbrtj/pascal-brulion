@@ -12,23 +12,36 @@ object LaneFrame: TLaneFrame
   DesignTop = 27
   object WPanel1: TWPanel
     Left = 0
-    Height = 200
-    Top = 0
+    Height = 176
+    Top = 32
     Width = 200
     BevelOuter = bvNone
     Caption = 'WPanel1'
-    ClientHeight = 200
-    ClientWidth = 200
-    HandleClass = 'lane'
     ParentColor = False
     TabOrder = 0
-    object LaneNameLabel: TWLabel
-      Left = 8
-      Height = 15
-      Top = 8
-      Width = 184
-      AutoSize = False
-      Caption = 'LaneNameLabel'
-    end
+  end
+  object LaneNameLabel: TWLabel
+    Left = 8
+    Height = 15
+    Top = 8
+    Width = 152
+    AutoSize = False
+    Caption = 'LaneNameLabel'
+  end
+  object DeleteLaneButton: TWButton
+    AnchorSideLeft.Control = LaneNameLabel
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = LaneNameLabel
+    AnchorSideTop.Side = asrCenter
+    Left = 168
+    Height = 23
+    Hint = 'Delete this lane permanently'
+    Top = 4
+    Width = 27
+    BorderSpacing.Left = 8
+    Caption = 'X'
+    HandleClass = 'button-danger'
+    TabOrder = 1
+    OnClick = DeleteLane
   end
 end
