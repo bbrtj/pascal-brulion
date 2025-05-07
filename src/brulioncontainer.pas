@@ -8,29 +8,45 @@ interface
 uses SysUtils, Classes, Web;
 
 type
-	TStorage = class abstract
+	IStorage = interface
+	['{4923fe8c-3623-428e-a4f7-a90e80b48402}']
 	protected
-		function GetItem(const Name: String): String; virtual; abstract;
-		procedure SetItem(const Name, Value: String); virtual; abstract;
+		function GetItem(const Name: String): String;
+		procedure SetItem(const Name, Value: String);
 	public
+		function HasItem(const Name: String): Boolean;
 		property Items[I: String]: String read GetItem write SetItem;
 	end;
 
-	TLocalStorage = class(TStorage)
+	TLocalStorage = class(IStorage)
 	protected
-		function GetItem(const Name: String): String; override;
-		procedure SetItem(const Name, Value: String); override;
+		function GetItem(const Name: String): String;
+		procedure SetItem(const Name, Value: String);
+	public
+		function HasItem(const Name: String): Boolean;
 	end;
+
+	TContainerSlots = (
+		csStorage,
+		csBoardsApi,
+		csLanesApi,
+		csState
+	);
 
 	TContainer = class(TPersistent)
 	private
-		FStorage: TStorage;
+		FSlots: Array[TContainerSlots] of TObject;
+		FSlotsOwned: Array[TContainerSlots] of Boolean;
+	protected
+		function GetService(Slot: TContainerSlots): TObject;
+		procedure SetService(Slot: TContainerSlots; AValue: TObject);
 	public
 		destructor Destroy; override;
 	public
+		procedure ServiceOwned(Slot: TContainerSlots; AValue: Boolean = True);
 		procedure Assign(Other: TContainer);
 	public
-		property Storage: TStorage read FStorage write FStorage;
+		property Services[Slot: TContainerSlots]: TObject read GetService write SetService;
 	end;
 
 var
@@ -42,23 +58,62 @@ implementation
 
 function TLocalStorage.GetItem(const Name: String): String;
 begin
-	result := window.localStorage.getItem(Name);
+	result := window.localStorage.Items[Name];
 end;
 
 procedure TLocalStorage.SetItem(const Name, Value: String);
 begin
-	window.localStorage.setItem(Name, Value);
+	window.localStorage.Items[Name] := Value;
 end;
 
-destructor TContainer.Destroy();
+function TLocalStorage.HasItem(const Name: String): Boolean;
+var
+	I: Integer;
 begin
-	FStorage.Free;
+	for I := 0 to window.localStorage.length do begin
+		if window.localStorage.Keys[I] = Name then
+			exit(True);
+	end;
+
+	result := False;
+end;
+
+function TContainer.GetService(Slot: TContainerSlots): TObject;
+begin
+	result := FSlots[Slot];
+end;
+
+procedure TContainer.SetService(Slot: TContainerSlots; AValue: TObject);
+begin
+	FSlotsOwned[Slot] := False;
+	FSlots[Slot] := AValue;
+end;
+
+destructor TContainer.Destroy;
+var
+	I: TContainerSlots;
+begin
+	for I := low(FSlots) to high(FSlots) do begin
+		if (FSlots[I] <> nil) and FSlotsOwned[I] then
+			FSlots[I].Free;
+	end;
+
 	inherited;
 end;
 
 procedure TContainer.Assign(Other: TContainer);
+var
+	I: TContainerSlots;
 begin
-	FStorage := Other.Storage;
+	for I := low(FSlots) to high(FSlots) do begin
+		FSlots[I] := Other.FSlots[I];
+		FSlotsOwned[I] := False;
+	end;
+end;
+
+procedure TContainer.ServiceOwned(Slot: TContainerSlots; AValue: Boolean);
+begin
+	FSlotsOwned[Slot] := AValue;
 end;
 
 function GetContainer(Container: TContainer): TContainer;
@@ -72,7 +127,8 @@ end;
 
 initialization
 	GDefaultContainer := TContainer.Create;
-	GDefaultContainer.Storage := TLocalStorage.Create;
+	GDefaultContainer.Services[csStorage] := TLocalStorage.Create;
+	GDefaultContainer.ServiceOwned(csStorage);
 
 {$IFNDEF PAS2JS}
 finalization

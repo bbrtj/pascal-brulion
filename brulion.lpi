@@ -47,7 +47,7 @@
         </CompilerOptions>
       </Item>
       <SharedMatrixOptions Count="1">
-        <Item1 ID="654480912962" Modes="Default" Value="-dBrulionApiUrl:=&quot;&apos;http://localhost:5000/api&apos;&quot;"/>
+        <Item1 ID="654480912962" Modes="Default" Value="-dBrulionApiUrl:=&apos;http://localhost:5000/api&apos;"/>
       </SharedMatrixOptions>
     </BuildModes>
     <PublishOptions>
@@ -76,6 +76,7 @@
         <ComponentName Value="MainForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="CustomForm"/>
+        <ResourceBaseClassname Value="TWForm"/>
         <UnitName Value="MainWindow"/>
       </Unit>
       <Unit>
@@ -83,6 +84,8 @@
         <IsPartOfProject Value="True"/>
         <ComponentName Value="LaneFrame"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Other"/>
+        <ResourceBaseClassname Value="TWFrame"/>
         <UnitName Value="LanesContainer"/>
       </Unit>
       <Unit>
@@ -99,6 +102,7 @@
         <ComponentName Value="NewBoardForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="CustomForm"/>
+        <ResourceBaseClassname Value="TWForm"/>
         <UnitName Value="NewBoard"/>
       </Unit>
     </Units>

@@ -159,10 +159,10 @@ begin
 		if LFound = -1 then
 			raise EBrulionState.Create('board with identifier ' + Board.Id + ' is not known');
 
-		self.Container.Storage.Items['current_board'] := Board.Id;
+		IStorage(self.Container.Services[csStorage]).Items['current_board'] := Board.Id;
 	end
 	else
-		self.Container.Storage.Items['current_board'] := CEmptyUlid;
+		IStorage(self.Container.Services[csStorage]).Items['current_board'] := CEmptyUlid;
 
 	FCurrentBoard := Board;
 	self.Parent.Lanes.Clear;
@@ -185,9 +185,14 @@ begin
 end;
 
 procedure TBrulionBoardsState.Init(Boards: TBoardDataArray);
+var
+	LStorage: IStorage;
 begin
 	inherited;
-	FCurrentBoard := self.GetBoardById(self.Container.Storage.Items['current_board']);
+
+	LStorage := IStorage(self.Container.Services[csStorage]);
+	if LStorage.HasItem('current_board') then
+		FCurrentBoard := self.GetBoardById(LStorage.Items['current_board']);
 end;
 
 procedure TBrulionBoardsState.Remove(Board: TBoardData);
