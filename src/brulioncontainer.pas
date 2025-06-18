@@ -18,14 +18,6 @@ type
 		property Items[I: String]: String read GetItem write SetItem;
 	end;
 
-	TLocalStorage = class(IStorage)
-	protected
-		function GetItem(const Name: String): String;
-		procedure SetItem(const Name, Value: String);
-	public
-		function HasItem(const Name: String): Boolean;
-	end;
-
 	TContainerSlots = (
 		csStorage,
 		csBoardsApi,
@@ -55,28 +47,6 @@ var
 function GetContainer(Container: TContainer = nil): TContainer;
 
 implementation
-
-function TLocalStorage.GetItem(const Name: String): String;
-begin
-	result := window.localStorage.Items[Name];
-end;
-
-procedure TLocalStorage.SetItem(const Name, Value: String);
-begin
-	window.localStorage.Items[Name] := Value;
-end;
-
-function TLocalStorage.HasItem(const Name: String): Boolean;
-var
-	I: Integer;
-begin
-	for I := 0 to window.localStorage.length do begin
-		if window.localStorage.Keys[I] = Name then
-			exit(True);
-	end;
-
-	result := False;
-end;
 
 function TContainer.GetService(Slot: TContainerSlots): TObject;
 begin
@@ -127,8 +97,6 @@ end;
 
 initialization
 	GDefaultContainer := TContainer.Create;
-	GDefaultContainer.Services[csStorage] := TLocalStorage.Create;
-	GDefaultContainer.ServiceOwned(csStorage);
 
 {$IFNDEF PAS2JS}
 finalization

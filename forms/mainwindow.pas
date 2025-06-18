@@ -5,7 +5,8 @@ interface
 uses
 	JS, Web, Classes, SysUtils, Graphics, Controls, Forms, WebCtrls, StdCtrls,
 	Contnrs, Dialogs,
-	NewBoard, NewLane, LanesContainer, BrulionTypes, BrulionApiConnector, BrulionState;
+	NewBoard, NewLane, LanesContainer, BrulionTypes, BrulionApiConnector,
+	BrulionState, BrulionContainer;
 
 type
 
@@ -45,6 +46,14 @@ type
 		constructor Create(AOwner: TComponent); override;
 		destructor Destroy(); override;
 		procedure ReAlign(); override;
+	end;
+
+	TLocalStorage = class(IStorage)
+	protected
+		function GetItem(const Name: String): String;
+		procedure SetItem(const Name, Value: String);
+	public
+		function HasItem(const Name: String): Boolean;
 	end;
 
 var
@@ -245,6 +254,15 @@ begin
 	FState := TBrulionState.Create;
 	FBoardsApi := TBoardsApi.Create;
 	FLanesApi := TLanesApi.Create;
+
+	GDefaultContainer.Services[csState] := FState;
+	GDefaultContainer.ServiceOwned(csState);
+	GDefaultContainer.Services[csBoardsApi] := FBoardsApi;
+	GDefaultContainer.ServiceOwned(csBoardsApi);
+	GDefaultContainer.Services[csLanesApi] := FLanesApi;
+	GDefaultContainer.ServiceOwned(csLanesApi);
+	GDefaultContainer.Services[csStorage] := TLocalStorage.Create;
+	GDefaultContainer.ServiceOwned(csStorage);
 end;
 
 destructor TMainForm.Destroy();
@@ -268,6 +286,30 @@ begin
 		BoardPanel.Controls[I].Left := LCurrentOffset;
 		LCurrentOffset += BoardPanel.Controls[I].Width;
 	end;
+end;
+
+{ TLocalStorage }
+
+function TLocalStorage.GetItem(const Name: String): String;
+begin
+	result := window.localStorage.Items[Name];
+end;
+
+procedure TLocalStorage.SetItem(const Name, Value: String);
+begin
+	window.localStorage.Items[Name] := Value;
+end;
+
+function TLocalStorage.HasItem(const Name: String): Boolean;
+var
+	I: Integer;
+begin
+	for I := 0 to window.localStorage.length do begin
+		if window.localStorage.Keys[I] = Name then
+			exit(True);
+	end;
+
+	result := False;
 end;
 
 end.
