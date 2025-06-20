@@ -39,7 +39,7 @@ type
 	end;
 
 var
-	GDefaultContainer: TContainer;
+	GContainer: TContainer;
 
 function GetContainer(Container: TContainer = nil): TContainer;
 
@@ -105,16 +105,16 @@ function GetContainer(Container: TContainer): TContainer;
 begin
 	result := TContainer.Create;
 	if Container = nil then
-		result.Assign(GDefaultContainer)
+		result.Assign(GContainer)
 	else
 		result.Assign(Container);
 end;
 
 initialization
-	GDefaultContainer := TContainer.Create;
+	GContainer := TContainer.Create;
 {$IFNDEF PAS2JS}
 finalization
-	GDefaultContainer.Free;
+	GContainer.Free;
 {$ENDIF}
 end.
 

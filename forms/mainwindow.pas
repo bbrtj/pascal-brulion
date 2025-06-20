@@ -65,7 +65,7 @@ implementation
 procedure TMainForm.DeleteBoardConfirmed(Sender: TObject; ModalResult: TModalResult);
 begin
 	if ModalResult = mrYes then
-		GDefaultContainer.BoardsApi.DeleteBoard(@DeleteBoardComplete, FState.Boards.Current.Id);
+		GContainer.BoardsApi.DeleteBoard(@DeleteBoardComplete, FState.Boards.Current.Id);
 end;
 
 procedure TMainForm.AddLaneButtonClick(Sender: TObject);
@@ -111,7 +111,7 @@ end;
 
 procedure TMainForm.Load(Sender: TObject);
 begin
-	GDefaultContainer.BoardsApi.LoadBoards(@self.LoadBoardsComplete);
+	GContainer.BoardsApi.LoadBoards(@self.LoadBoardsComplete);
 end;
 
 procedure TMainForm.BoardComboReload;
@@ -151,17 +151,17 @@ end;
 procedure TMainForm.EnterBoard;
 begin
 	if FState.Boards.Current = nil then exit;
-	GDefaultContainer.LanesApi.LoadLanes(@LoadLanesComplete, FState.Boards.Current.Id);
+	GContainer.LanesApi.LoadLanes(@LoadLanesComplete, FState.Boards.Current.Id);
 end;
 
 procedure TMainForm.CreateBoardComplete(Sender: TObject);
 begin
-	GDefaultContainer.BoardsApi.LoadBoard(@LoadBoardComplete, TGeneralSuccessApiData(Sender).Value.Id);
+	GContainer.BoardsApi.LoadBoard(@LoadBoardComplete, TGeneralSuccessApiData(Sender).Value.Id);
 end;
 
 procedure TMainForm.CreateLaneComplete(Sender: TObject);
 begin
-	GDefaultContainer.LanesApi.LoadLane(@LoadLaneComplete, TGeneralSuccessApiData(Sender).Value.Id);
+	GContainer.LanesApi.LoadLane(@LoadLaneComplete, TGeneralSuccessApiData(Sender).Value.Id);
 end;
 
 procedure TMainForm.DeleteBoardComplete(Sender: TObject);
@@ -223,7 +223,7 @@ var
 begin
 	LModal := TNewBoardForm(Sender);
 	if ModalResult = mrOk then
-		GDefaultContainer.BoardsApi.CreateBoard(@CreateBoardComplete, LModal.NewBoardData);
+		GContainer.BoardsApi.CreateBoard(@CreateBoardComplete, LModal.NewBoardData);
 
 	Self.RemoveComponent(LModal);
 	LModal.Free;
@@ -238,7 +238,7 @@ begin
 	if ModalResult = mrOk then begin
 		LData := LModal.NewLaneData;
 		LData.BoardId := FState.Boards.Current.Id;
-		GDefaultContainer.LanesApi.CreateLane(@CreateLaneComplete, LData);
+		GContainer.LanesApi.CreateLane(@CreateLaneComplete, LData);
 	end;
 
 	Self.RemoveComponent(LModal);
@@ -248,18 +248,18 @@ end;
 constructor TMainForm.Create(AOwner: TComponent);
 begin
 	inherited Create(AOwner);
-	GDefaultContainer.Services[csStorage] := TLocalStorage.Create;
-	GDefaultContainer.ServiceOwned(csStorage);
+	GContainer.Services[csStorage] := TLocalStorage.Create;
+	GContainer.ServiceOwned(csStorage);
 
-	GDefaultContainer.Services[csState] := TBrulionState.Create;
-	GDefaultContainer.ServiceOwned(csState);
-	FState := TBrulionState(GDefaultContainer.Services[csState]);
+	GContainer.Services[csState] := TBrulionState.Create;
+	GContainer.ServiceOwned(csState);
+	FState := TBrulionState(GContainer.Services[csState]);
 
-	GDefaultContainer.Services[csBoardsApi] := TBoardsApi.Create;
-	GDefaultContainer.ServiceOwned(csBoardsApi);
+	GContainer.Services[csBoardsApi] := TBoardsApi.Create;
+	GContainer.ServiceOwned(csBoardsApi);
 
-	GDefaultContainer.Services[csLanesApi] := TLanesApi.Create;
-	GDefaultContainer.ServiceOwned(csLanesApi);
+	GContainer.Services[csLanesApi] := TLanesApi.Create;
+	GContainer.ServiceOwned(csLanesApi);
 end;
 
 procedure TMainForm.ReAlign();
