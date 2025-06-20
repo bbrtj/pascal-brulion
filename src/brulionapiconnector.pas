@@ -5,7 +5,7 @@ unit BrulionApiConnector;
 interface
 
 uses SysUtils, Classes, Web, FPJson, FPJsonJS, Generics.Collections, Math,
-	BrulionTypes, BrulionContainer;
+	BrulionTypes;
 
 const
 	// see project options for this define
@@ -104,7 +104,7 @@ type
 
 	TBoardsApiData = specialize TBrulionApiDataSingle<TBoardData>;
 	TBoardsApiDataList = specialize TBrulionApiDataList<TBoardData>;
-	TBoardsApi = class(TApi)
+	TBoardsApi = class(TApi, IBoardsApi)
 	public
 		constructor Create();
 		procedure LoadBoard(Event: TNotifyEvent; const Id: TUlid);
@@ -115,7 +115,7 @@ type
 
 	TLanesApiData = specialize TBrulionApiDataSingle<TLaneData>;
 	TLanesApiDataList = specialize TBrulionApiDataList<TLaneData>;
-	TLanesApi = class(TApi)
+	TLanesApi = class(TApi, ILanesApi)
 	public
 		constructor Create();
 		procedure LoadLane(Event: TNotifyEvent; const Id: TUlid);

@@ -1,10 +1,11 @@
 unit BrulionTypes;
 
 {$mode objfpc}{$H+}{$J-}
+{$interfaces corba}
 
 interface
 
-uses SysUtils, FPJson, FPJsonJS;
+uses SysUtils, Classes, FPJson, FPJsonJS;
 
 const
 	CEmptyUlid = '';
@@ -43,6 +44,34 @@ type
 		Content: String;
 	end;
 	TNoteDataArray = Array of TNoteData;
+
+	IStorage = interface
+	['{4923fe8c-3623-428e-a4f7-a90e80b48402}']
+	protected
+		function GetItem(const Name: String): String;
+		procedure SetItem(const Name, Value: String);
+	public
+		function HasItem(const Name: String): Boolean;
+		property Items[I: String]: String read GetItem write SetItem;
+	end;
+
+	IBoardsApi = interface
+	['{2f90c07b-b363-49eb-9cc7-a97a94de3f6d}']
+	public
+		procedure LoadBoard(Event: TNotifyEvent; const Id: TUlid);
+		procedure DeleteBoard(Event: TNotifyEvent; const Id: TUlid);
+		procedure LoadBoards(Event: TNotifyEvent);
+		procedure CreateBoard(Event: TNotifyEvent; const Board: TBoardData);
+	end;
+
+	ILanesApi = interface
+	['{2f90c07b-b363-49eb-9cc7-a97a94de3f6d}']
+	public
+		procedure LoadLane(Event: TNotifyEvent; const Id: TUlid);
+		procedure DeleteLane(Event: TNotifyEvent; const Id: TUlid);
+		procedure LoadLanes(Event: TNotifyEvent; const BoardId: TUlid);
+		procedure CreateLane(Event: TNotifyEvent; const Lane: TLaneData);
+	end;
 
 implementation
 

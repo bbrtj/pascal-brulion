@@ -1,27 +1,18 @@
 unit BrulionContainer;
 
 {$mode objfpc}{$H+}{$J-}
-{$interfaces corba}
 
 interface
 
-uses SysUtils, Classes, Web;
+uses SysUtils, Classes, Web,
+	BrulionTypes;
 
 type
-	IStorage = interface
-	['{4923fe8c-3623-428e-a4f7-a90e80b48402}']
-	protected
-		function GetItem(const Name: String): String;
-		procedure SetItem(const Name, Value: String);
-	public
-		function HasItem(const Name: String): Boolean;
-		property Items[I: String]: String read GetItem write SetItem;
-	end;
-
+	// Not all slots have their own interfaces - some must be casted by hand
 	TContainerSlots = (
-		csStorage,
-		csBoardsApi,
-		csLanesApi,
+		csStorage, // IStorage
+		csBoardsApi, // IBoardsApi
+		csLanesApi, // ILanesApi
 		csState
 	);
 
@@ -32,6 +23,9 @@ type
 	protected
 		function GetService(Slot: TContainerSlots): TObject;
 		procedure SetService(Slot: TContainerSlots; AValue: TObject);
+		function GetStorage(): IStorage;
+		function GetBoardsApi(): IBoardsApi;
+		function GetLanesApi(): ILanesApi;
 	public
 		destructor Destroy; override;
 	public
@@ -39,6 +33,9 @@ type
 		procedure Assign(Other: TContainer);
 	public
 		property Services[Slot: TContainerSlots]: TObject read GetService write SetService;
+		property Storage: IStorage read GetStorage;
+		property BoardsApi: IBoardsApi read GetBoardsApi;
+		property LanesApi: ILanesApi read GetLanesApi;
 	end;
 
 var
@@ -55,8 +52,26 @@ end;
 
 procedure TContainer.SetService(Slot: TContainerSlots; AValue: TObject);
 begin
+	if (FSlots[Slot] <> nil) and FSlotsOwned[Slot] then
+		FSlots[Slot].Free;
+
 	FSlotsOwned[Slot] := False;
 	FSlots[Slot] := AValue;
+end;
+
+function TContainer.GetStorage(): IStorage;
+begin
+	result := self.GetService(csStorage) as IStorage;
+end;
+
+function TContainer.GetBoardsApi(): IBoardsApi;
+begin
+	result := self.GetService(csBoardsApi) as IBoardsApi;
+end;
+
+function TContainer.GetLanesApi(): ILanesApi;
+begin
+	result := self.GetService(csLanesApi) as ILanesApi;
 end;
 
 destructor TContainer.Destroy;
@@ -97,7 +112,6 @@ end;
 
 initialization
 	GDefaultContainer := TContainer.Create;
-
 {$IFNDEF PAS2JS}
 finalization
 	GDefaultContainer.Free;

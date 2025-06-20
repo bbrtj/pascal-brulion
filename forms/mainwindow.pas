@@ -44,7 +44,6 @@ type
 		procedure CreateLane(Sender: TObject; ModalResult: TModalResult);
 	public
 		constructor Create(AOwner: TComponent); override;
-		destructor Destroy(); override;
 		procedure ReAlign(); override;
 	end;
 
@@ -251,26 +250,20 @@ end;
 constructor TMainForm.Create(AOwner: TComponent);
 begin
 	inherited Create(AOwner);
-	FState := TBrulionState.Create;
-	FBoardsApi := TBoardsApi.Create;
-	FLanesApi := TLanesApi.Create;
-
-	GDefaultContainer.Services[csState] := FState;
-	GDefaultContainer.ServiceOwned(csState);
-	GDefaultContainer.Services[csBoardsApi] := FBoardsApi;
-	GDefaultContainer.ServiceOwned(csBoardsApi);
-	GDefaultContainer.Services[csLanesApi] := FLanesApi;
-	GDefaultContainer.ServiceOwned(csLanesApi);
 	GDefaultContainer.Services[csStorage] := TLocalStorage.Create;
 	GDefaultContainer.ServiceOwned(csStorage);
-end;
 
-destructor TMainForm.Destroy();
-begin
-	FLanesApi.Free;
-	FBoardsApi.Free;
-	FState.Free;
-	inherited;
+	FState := TBrulionState.Create;
+	GDefaultContainer.Services[csState] := FState;
+	GDefaultContainer.ServiceOwned(csState);
+
+	FBoardsApi := TBoardsApi.Create;
+	GDefaultContainer.Services[csBoardsApi] := FBoardsApi;
+	GDefaultContainer.ServiceOwned(csBoardsApi);
+
+	FLanesApi := TLanesApi.Create;
+	GDefaultContainer.Services[csLanesApi] := FLanesApi;
+	GDefaultContainer.ServiceOwned(csLanesApi);
 end;
 
 procedure TMainForm.ReAlign();
