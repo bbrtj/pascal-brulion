@@ -6,7 +6,7 @@ uses
 	JS, Web, Classes, SysUtils, Graphics, Controls, Forms, WebCtrls, StdCtrls,
 	Contnrs, Dialogs,
 	NewBoard, NewLane, LanesContainer, BrulionTypes, BrulionApiConnector,
-	BrulionState, BrulionContainer;
+	BrulionState, BrulionContainer, BrulionPipelines, BrulionUiPipelines;
 
 type
 
@@ -26,19 +26,17 @@ type
 		procedure Load(Sender: TObject);
 	private
 		FState: TBrulionState;
+		FPipelines: TPipelineManager;
 	private
 		procedure BoardComboReload;
 		procedure LanesReload;
 		procedure EnterBoard;
-		procedure CreateBoardComplete(Sender: TObject);
 		procedure CreateLaneComplete(Sender: TObject);
 		procedure DeleteBoardComplete(Sender: TObject);
-		procedure DeleteBoardConfirmed(Sender: TObject; ModalResult: TModalResult);
 		procedure LoadBoardComplete(Sender: TObject);
 		procedure LoadLaneComplete(Sender: TObject);
 		procedure LoadBoardsComplete(Sender: TObject);
 		procedure LoadLanesComplete(Sender: TObject);
-		procedure CreateBoard(Sender: TObject; ModalResult: TModalResult);
 		procedure CreateLane(Sender: TObject; ModalResult: TModalResult);
 	public
 		constructor Create(AOwner: TComponent); override;
@@ -62,12 +60,6 @@ implementation
 
 { TMainForm }
 
-procedure TMainForm.DeleteBoardConfirmed(Sender: TObject; ModalResult: TModalResult);
-begin
-	if ModalResult = mrYes then
-		GContainer.BoardsApi.DeleteBoard(@DeleteBoardComplete, FState.Boards.Current.Id);
-end;
-
 procedure TMainForm.AddLaneButtonClick(Sender: TObject);
 begin
 	if FState.Boards.Current = nil then begin
@@ -79,22 +71,43 @@ begin
 end;
 
 procedure TMainForm.DeleteBoard(Sender: TObject);
+var
+	LConfirmPipeline: TConfirmPipeline;
+	LDeletePipeline: TDeleteBoardPipeline;
 begin
 	if FState.Boards.Current = nil then exit;
 
-	MessageDlg(
-		Self,
-		Format('Permanently delete board "%s"?', [FState.Boards.Current.Name]),
-		mtWarning,
-		mbYesNo,
-		mbNo,
-		@DeleteBoardConfirmed
-	);
+	LConfirmPipeline := FPipelines.New(TConfirmPipeline) as TConfirmPipeline;
+	LDeletePipeline := FPipelines.New(TDeleteBoardPipeline) as TDeleteBoardPipeline;
+
+	LConfirmPipeline.Form := self;
+	LConfirmPipeline.ConfirmText := Format('Permanently delete board "%s"?', [FState.Boards.Current.Name]);
+	LConfirmPipeline.SetNext(LDeletePipeline);
+
+	LDeletePipeline.Data := FState.Boards.Current;
+	LDeletePipeline.SetNext(@self.DeleteBoardComplete);
+
+	LConfirmPipeline.Start(nil);
 end;
 
 procedure TMainForm.AddBoardButtonClick(Sender: TObject);
+var
+	LModalPipeline: TBoardModalPipeline;
+	LCreatePipeline: TCreateBoardPipeline;
+	LLoadPipeline: TLoadBoardPipeline;
 begin
-	TNewBoardForm.Create(self).ShowModal(@CreateBoard);
+	LModalPipeline := FPipelines.New(TBoardModalPipeline) as TBoardModalPipeline;
+	LCreatePipeline := FPipelines.New(TCreateBoardPipeline) as TCreateBoardPipeline;
+	LLoadPipeline := FPipelines.New(TLoadBoardPipeline) as TLoadBoardPipeline;
+
+	LModalPipeline.Form := self;
+	LModalPipeline.SetNext(LCreatePipeline);
+
+	LCreatePipeline.SetNext(LLoadPipeline);
+
+	LLoadPipeline.SetNext(@self.LoadBoardComplete);
+
+	LModalPipeline.Start(nil);
 end;
 
 procedure TMainForm.BoardChanged(Sender: TObject);
@@ -154,11 +167,6 @@ begin
 	GContainer.LanesApi.LoadLanes(@LoadLanesComplete, FState.Boards.Current.Id);
 end;
 
-procedure TMainForm.CreateBoardComplete(Sender: TObject);
-begin
-	GContainer.BoardsApi.LoadBoard(@LoadBoardComplete, TGeneralSuccessApiData(Sender).Value.Id);
-end;
-
 procedure TMainForm.CreateLaneComplete(Sender: TObject);
 begin
 	GContainer.LanesApi.LoadLane(@LoadLaneComplete, TGeneralSuccessApiData(Sender).Value.Id);
@@ -166,23 +174,13 @@ end;
 
 procedure TMainForm.DeleteBoardComplete(Sender: TObject);
 begin
-	FState.Boards.Remove(FState.Boards.Current);
-
-	if FState.Boards.Count > 0 then
-		FState.Boards.Current := FState.Boards.Items[0];
-
 	BoardComboReload;
 	EnterBoard;
 end;
 
 procedure TMainForm.LoadBoardComplete(Sender: TObject);
-var
-	LBoard: TBoardData;
 begin
-	LBoard := TBoardsApiData(Sender).Snatch;
-	FState.Boards.Add([LBoard]);
-	FState.Boards.Current := LBoard;
-
+	FState.Boards.Current := Sender as TBoardData;
 	BoardComboReload;
 	EnterBoard;
 end;
@@ -217,18 +215,6 @@ begin
 	LanesReload;
 end;
 
-procedure TMainForm.CreateBoard(Sender: TObject; ModalResult: TModalResult);
-var
-	LModal: TNewBoardForm;
-begin
-	LModal := TNewBoardForm(Sender);
-	if ModalResult = mrOk then
-		GContainer.BoardsApi.CreateBoard(@CreateBoardComplete, LModal.NewBoardData);
-
-	Self.RemoveComponent(LModal);
-	LModal.Free;
-end;
-
 procedure TMainForm.CreateLane(Sender: TObject; ModalResult: TModalResult);
 var
 	LModal: TNewLaneForm;
@@ -253,13 +239,17 @@ begin
 
 	GContainer.Services[csState] := TBrulionState.Create;
 	GContainer.ServiceOwned(csState);
-	FState := TBrulionState(GContainer.Services[csState]);
+	FState := GContainer.Services[csState] as TBrulionState;
 
 	GContainer.Services[csBoardsApi] := TBoardsApi.Create;
 	GContainer.ServiceOwned(csBoardsApi);
 
 	GContainer.Services[csLanesApi] := TLanesApi.Create;
 	GContainer.ServiceOwned(csLanesApi);
+
+	GContainer.Services[csPipelineManager] := TPipelineManager.Create;
+	GContainer.ServiceOwned(csPipelineManager);
+	FPipelines := GContainer.Services[csPipelineManager] as TPipelineManager;
 end;
 
 procedure TMainForm.ReAlign();

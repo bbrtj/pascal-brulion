@@ -13,7 +13,8 @@ type
 		csStorage, // IStorage
 		csBoardsApi, // IBoardsApi
 		csLanesApi, // ILanesApi
-		csState
+		csState,
+		csPipelineManager
 	);
 
 	TContainer = class(TPersistent)

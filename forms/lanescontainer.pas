@@ -4,7 +4,7 @@ interface
 
 uses
 	JS, Classes, SysUtils, Graphics, Controls, Forms, Dialogs, WebCtrls,
-	BrulionTypes, UniqName;
+	BrulionTypes, BrulionContainer, BrulionState, UniqName;
 
 type
 
@@ -17,9 +17,12 @@ type
 		procedure DeleteLane(Sender: TObject);
 		procedure LaneFrameResize(Sender: TObject);
 	private
+		FState: TBrulionState;
 		FLane: TLaneData;
 		procedure SetLane(AValue: TLaneData);
 		procedure SetParent(AValue: TWinControl);
+		procedure DeleteLaneConfirmed(Sender: TObject; ModalResult: TModalResult);
+		procedure DeleteLaneComplete(Sender: TObject);
 	public
 		constructor Create(AOwner: TComponent); override;
 	public
@@ -32,6 +35,16 @@ implementation
 {$R *.lfm}
 
 { TLaneFrame }
+
+procedure TLaneFrame.DeleteLaneConfirmed(Sender: TObject; ModalResult: TModalResult);
+begin
+	// if ModalResult = mrYes then
+	// 	GContainer.LanesApi.DeleteLane(@DeleteLaneComplete, FState.Lanes.Current.Id);
+end;
+
+procedure TLaneFrame.DeleteLaneComplete(Sender: TObject);
+begin
+end;
 
 procedure TLaneFrame.LaneFrameResize(Sender: TObject);
 begin
@@ -46,7 +59,7 @@ begin
 	// 	mtWarning,
 	// 	mbYesNo,
 	// 	mbNo,
-	// 	@DeleteBoardConfirmed
+	// 	@DeleteLaneConfirmed
 	// );
 end;
 
@@ -67,6 +80,8 @@ constructor TLaneFrame.Create(AOwner: TComponent);
 begin
 	inherited Create(AOwner);
 	SetUniqName(self);
+
+	FState := TBrulionState(GContainer.Services[csState]);
 end;
 
 end.
