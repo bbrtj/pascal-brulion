@@ -26,8 +26,6 @@ type
 		procedure Load(Sender: TObject);
 	private
 		FState: TBrulionState;
-		FBoardsApi: TBoardsApi;
-		FLanesApi: TLanesApi;
 	private
 		procedure BoardComboReload;
 		procedure LanesReload;
@@ -67,7 +65,7 @@ implementation
 procedure TMainForm.DeleteBoardConfirmed(Sender: TObject; ModalResult: TModalResult);
 begin
 	if ModalResult = mrYes then
-		FBoardsApi.DeleteBoard(@DeleteBoardComplete, FState.Boards.Current.Id);
+		GDefaultContainer.BoardsApi.DeleteBoard(@DeleteBoardComplete, FState.Boards.Current.Id);
 end;
 
 procedure TMainForm.AddLaneButtonClick(Sender: TObject);
@@ -113,7 +111,7 @@ end;
 
 procedure TMainForm.Load(Sender: TObject);
 begin
-	FBoardsApi.LoadBoards(@self.LoadBoardsComplete);
+	GDefaultContainer.BoardsApi.LoadBoards(@self.LoadBoardsComplete);
 end;
 
 procedure TMainForm.BoardComboReload;
@@ -153,17 +151,17 @@ end;
 procedure TMainForm.EnterBoard;
 begin
 	if FState.Boards.Current = nil then exit;
-	FLanesApi.LoadLanes(@LoadLanesComplete, FState.Boards.Current.Id);
+	GDefaultContainer.LanesApi.LoadLanes(@LoadLanesComplete, FState.Boards.Current.Id);
 end;
 
 procedure TMainForm.CreateBoardComplete(Sender: TObject);
 begin
-	FBoardsApi.LoadBoard(@LoadBoardComplete, TGeneralSuccessApiData(Sender).Value.Id);
+	GDefaultContainer.BoardsApi.LoadBoard(@LoadBoardComplete, TGeneralSuccessApiData(Sender).Value.Id);
 end;
 
 procedure TMainForm.CreateLaneComplete(Sender: TObject);
 begin
-	FLanesApi.LoadLane(@LoadLaneComplete, TGeneralSuccessApiData(Sender).Value.Id);
+	GDefaultContainer.LanesApi.LoadLane(@LoadLaneComplete, TGeneralSuccessApiData(Sender).Value.Id);
 end;
 
 procedure TMainForm.DeleteBoardComplete(Sender: TObject);
@@ -225,7 +223,7 @@ var
 begin
 	LModal := TNewBoardForm(Sender);
 	if ModalResult = mrOk then
-		FBoardsApi.CreateBoard(@CreateBoardComplete, LModal.NewBoardData);
+		GDefaultContainer.BoardsApi.CreateBoard(@CreateBoardComplete, LModal.NewBoardData);
 
 	Self.RemoveComponent(LModal);
 	LModal.Free;
@@ -240,7 +238,7 @@ begin
 	if ModalResult = mrOk then begin
 		LData := LModal.NewLaneData;
 		LData.BoardId := FState.Boards.Current.Id;
-		FLanesApi.CreateLane(@CreateLaneComplete, LData);
+		GDefaultContainer.LanesApi.CreateLane(@CreateLaneComplete, LData);
 	end;
 
 	Self.RemoveComponent(LModal);
@@ -253,16 +251,14 @@ begin
 	GDefaultContainer.Services[csStorage] := TLocalStorage.Create;
 	GDefaultContainer.ServiceOwned(csStorage);
 
-	FState := TBrulionState.Create;
-	GDefaultContainer.Services[csState] := FState;
+	GDefaultContainer.Services[csState] := TBrulionState.Create;
 	GDefaultContainer.ServiceOwned(csState);
+	FState := TBrulionState(GDefaultContainer.Services[csState]);
 
-	FBoardsApi := TBoardsApi.Create;
-	GDefaultContainer.Services[csBoardsApi] := FBoardsApi;
+	GDefaultContainer.Services[csBoardsApi] := TBoardsApi.Create;
 	GDefaultContainer.ServiceOwned(csBoardsApi);
 
-	FLanesApi := TLanesApi.Create;
-	GDefaultContainer.Services[csLanesApi] := FLanesApi;
+	GDefaultContainer.Services[csLanesApi] := TLanesApi.Create;
 	GDefaultContainer.ServiceOwned(csLanesApi);
 end;
 
