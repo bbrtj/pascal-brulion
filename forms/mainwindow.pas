@@ -190,6 +190,9 @@ begin
 	LLanesPipeline.Data := FState.Boards.Current;
 	LLanesPipeline.SetNext(@self.LoadLanesComplete);
 	LLanesPipeline.Start(nil);
+
+	// clean up finished pipelines
+	FPipelines.Cleanup;
 end;
 
 procedure TMainForm.DeleteBoardComplete(Sender: TObject);
