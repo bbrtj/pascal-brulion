@@ -4,7 +4,8 @@ interface
 
 uses
 	JS, Classes, SysUtils, Graphics, Controls, Forms, Dialogs, WebCtrls,
-	BrulionTypes, BrulionContainer, BrulionState, UniqName;
+	BrulionTypes, BrulionContainer, BrulionState, UniqName,
+	BrulionPipelines, BrulionUiPipelines;
 
 type
 
@@ -21,8 +22,6 @@ type
 		FLane: TLaneData;
 		procedure SetLane(AValue: TLaneData);
 		procedure SetParent(AValue: TWinControl);
-		procedure DeleteLaneConfirmed(Sender: TObject; ModalResult: TModalResult);
-		procedure DeleteLaneComplete(Sender: TObject);
 	public
 		constructor Create(AOwner: TComponent); override;
 	public
@@ -32,19 +31,11 @@ type
 
 implementation
 
+uses MainWindow;
+
 {$R *.lfm}
 
 { TLaneFrame }
-
-procedure TLaneFrame.DeleteLaneConfirmed(Sender: TObject; ModalResult: TModalResult);
-begin
-	// if ModalResult = mrYes then
-	// 	GContainer.LanesApi.DeleteLane(@DeleteLaneComplete, FState.Lanes.Current.Id);
-end;
-
-procedure TLaneFrame.DeleteLaneComplete(Sender: TObject);
-begin
-end;
 
 procedure TLaneFrame.LaneFrameResize(Sender: TObject);
 begin
@@ -52,15 +43,23 @@ begin
 end;
 
 procedure TLaneFrame.DeleteLane(Sender: TObject);
+var
+	LPipelines: TPipelineManager;
+	LConfirmPipeline: TConfirmPipeline;
+	LDeletePipeline: TDeleteLanePipeline;
 begin
-	// MessageDlg(
-	// 	Self,
-	// 	Format('Permanently delete lane "%s"?', [FLane.Name]),
-	// 	mtWarning,
-	// 	mbYesNo,
-	// 	mbNo,
-	// 	@DeleteLaneConfirmed
-	// );
+	LPipelines := TPipelineManager(GContainer.Services[csPipelineManager]);
+	LConfirmPipeline := LPipelines.New(TConfirmPipeline) as TConfirmPipeline;
+	LDeletePipeline := LPipelines.New(TDeleteLanePipeline) as TDeleteLanePipeline;
+
+	LConfirmPipeline.Form := TMainForm(self.Owner);
+	LConfirmPipeline.ConfirmText := Format('Permanently delete lane "%s"?', [self.Lane.Name]);
+	LConfirmPipeline.SetNext(LDeletePipeline);
+
+	LDeletePipeline.Data := self.Lane;
+	LDeletePipeline.SetNext(@TMainForm(self.Owner).LoadLanesComplete);
+
+	LConfirmPipeline.Start(nil);
 end;
 
 procedure TLaneFrame.SetParent(AValue: TWinControl);

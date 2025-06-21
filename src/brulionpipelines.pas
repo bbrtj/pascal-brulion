@@ -44,18 +44,16 @@ type
 		procedure Cleanup();
 	end;
 
-	{ Board pipelines }
-
-	TBoardPipeline = class(TPipeline)
-	private
-		FData: TBoardData;
+	TLoadSystemBoardsPipeline = class(TPipeline)
+	protected
+		procedure Finish(Sender: TObject); override;
 	public
 		procedure Start(Sender: TObject); override;
-	public
-		property Data: TBoardData read FData write FData;
 	end;
 
-	TLoadBoardPipeline = class(TBoardPipeline)
+	{ Board pipelines }
+
+	TLoadBoardPipeline = class(TPipeline)
 	private
 		FId: TUlid;
 	protected
@@ -66,6 +64,22 @@ type
 		property Id: TUlid read FId write FId;
 	end;
 
+	TBoardPipeline = class abstract(TPipeline)
+	private
+		FData: TBoardData;
+	public
+		procedure Start(Sender: TObject); override;
+	public
+		property Data: TBoardData read FData write FData;
+	end;
+
+	TLoadBoardLanesPipeline = class(TBoardPipeline)
+	protected
+		procedure Finish(Sender: TObject); override;
+	public
+		procedure Start(Sender: TObject); override;
+	end;
+
 	TCreateBoardPipeline = class(TBoardPipeline)
 	protected
 		procedure Finish(Sender: TObject); override;
@@ -74,6 +88,42 @@ type
 	end;
 
 	TDeleteBoardPipeline = class(TBoardPipeline)
+	protected
+		procedure Finish(Sender: TObject); override;
+	public
+		procedure Start(Sender: TObject); override;
+	end;
+
+	{ Lane pipelines }
+
+	TLoadLanePipeline = class(TPipeline)
+	private
+		FId: TUlid;
+	protected
+		procedure Finish(Sender: TObject); override;
+	public
+		procedure Start(Sender: TObject); override;
+	public
+		property Id: TUlid read FId write FId;
+	end;
+
+	TLanePipeline = class abstract(TPipeline)
+	private
+		FData: TLaneData;
+	public
+		procedure Start(Sender: TObject); override;
+	public
+		property Data: TLaneData read FData write FData;
+	end;
+
+	TCreateLanePipeline = class(TLanePipeline)
+	protected
+		procedure Finish(Sender: TObject); override;
+	public
+		procedure Start(Sender: TObject); override;
+	end;
+
+	TDeleteLanePipeline = class(TLanePipeline)
 	protected
 		procedure Finish(Sender: TObject); override;
 	public
@@ -136,18 +186,29 @@ begin
 	end;
 end;
 
-procedure TBoardPipeline.Start(Sender: TObject);
+procedure TLoadSystemBoardsPipeline.Finish(Sender: TObject);
+var
+	LResponse: TBoardsApiDataList;
+begin
+	LResponse := Sender as TBoardsApiDataList;
+	// TODO: handle pagination
+	TBrulionState(GContainer.Services[csState]).Boards.Init(LResponse.Value);
+	inherited;
+end;
+
+procedure TLoadSystemBoardsPipeline.Start(Sender: TObject);
 begin
 	inherited;
-	if (self.Data = nil) and (Sender <> nil) and (Sender is TBoardData) then
-		self.Data := Sender as TBoardData;
+	GContainer.BoardsApi.LoadBoards(@self.Finish);
 end;
 
 procedure TLoadBoardPipeline.Finish(Sender: TObject);
+var
+	LData: TBoardData;
 begin
-	self.Data := TBoardsApiData(Sender).Snatch;
-	TBrulionState(GContainer.Services[csState]).Boards.Add([self.Data]);
-	inherited Finish(self.Data);
+	LData := TBoardsApiData(Sender).Snatch;
+	TBrulionState(GContainer.Services[csState]).Boards.Add([LData]);
+	inherited Finish(LData);
 end;
 
 procedure TLoadBoardPipeline.Start(Sender: TObject);
@@ -157,6 +218,29 @@ begin
 		self.Id := TGeneralSuccessData(Sender).Id;
 
 	GContainer.BoardsApi.LoadBoard(@self.Finish, self.Id);
+end;
+
+procedure TBoardPipeline.Start(Sender: TObject);
+begin
+	inherited;
+	if (self.Data = nil) and (Sender <> nil) and (Sender is TBoardData) then
+		self.Data := Sender as TBoardData;
+end;
+
+procedure TLoadBoardLanesPipeline.Finish(Sender: TObject);
+var
+	LResponse: TLanesApiDataList;
+begin
+	LResponse := Sender as TLanesApiDataList;
+	// TODO: handle pagination
+	TBrulionState(GContainer.Services[csState]).Lanes.Init(LResponse.Value);
+	inherited;
+end;
+
+procedure TLoadBoardLanesPipeline.Start(Sender: TObject);
+begin
+	inherited;
+	GContainer.LanesApi.LoadLanes(@self.Finish, self.Data.Id);
 end;
 
 procedure TCreateBoardPipeline.Finish(Sender: TObject);
@@ -171,12 +255,6 @@ begin
 	GContainer.BoardsApi.CreateBoard(@self.Finish, self.Data);
 end;
 
-procedure TDeleteBoardPipeline.Start(Sender: TObject);
-begin
-	inherited;
-	GContainer.BoardsApi.DeleteBoard(@self.Finish, self.Data.Id);
-end;
-
 procedure TDeleteBoardPipeline.Finish(Sender: TObject);
 var
 	LState: TBrulionState;
@@ -189,7 +267,62 @@ begin
 	if LCurrent and (LState.Boards.Count > 0) then
 		LState.Boards.Current := LState.Boards.Items[0];
 
-	inherited Finish(Sender);
+	inherited;
+end;
+
+procedure TDeleteBoardPipeline.Start(Sender: TObject);
+begin
+	inherited;
+	GContainer.BoardsApi.DeleteBoard(@self.Finish, self.Data.Id);
+end;
+
+procedure TLoadLanePipeline.Finish(Sender: TObject);
+var
+	LData: TLaneData;
+begin
+	LData := TLanesApiData(Sender).Snatch;
+	TBrulionState(GContainer.Services[csState]).Lanes.Add([LData]);
+	inherited Finish(LData);
+end;
+
+procedure TLoadLanePipeline.Start(Sender: TObject);
+begin
+	inherited;
+	if (self.Id = CEmptyUlid) and (Sender <> nil) and (Sender is TGeneralSuccessData) then
+		self.Id := TGeneralSuccessData(Sender).Id;
+
+	GContainer.LanesApi.LoadLane(@self.Finish, self.Id);
+end;
+
+procedure TLanePipeline.Start(Sender: TObject);
+begin
+	inherited;
+	if (self.Data = nil) and (Sender <> nil) and (Sender is TLaneData) then
+		self.Data := Sender as TLaneData;
+end;
+
+procedure TCreateLanePipeline.Finish(Sender: TObject);
+begin
+	// no need to transfer API success, just the actual data
+	inherited Finish(TGeneralSuccessApiData(Sender).Value);
+end;
+
+procedure TCreateLanePipeline.Start(Sender: TObject);
+begin
+	inherited;
+	GContainer.LanesApi.CreateLane(@self.Finish, self.Data);
+end;
+
+procedure TDeleteLanePipeline.Finish(Sender: TObject);
+begin
+	TBrulionState(GContainer.Services[csState]).Lanes.Remove(self.Data);
+	inherited;
+end;
+
+procedure TDeleteLanePipeline.Start(Sender: TObject);
+begin
+	inherited;
+	GContainer.LanesApi.DeleteLane(@self.Finish, self.Data.Id);
 end;
 
 end.

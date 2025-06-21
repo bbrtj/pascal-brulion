@@ -31,24 +31,23 @@ type
 		procedure BoardComboReload;
 		procedure LanesReload;
 		procedure EnterBoard;
-		procedure CreateLaneComplete(Sender: TObject);
 		procedure DeleteBoardComplete(Sender: TObject);
 		procedure LoadBoardComplete(Sender: TObject);
 		procedure LoadLaneComplete(Sender: TObject);
 		procedure LoadBoardsComplete(Sender: TObject);
-		procedure LoadLanesComplete(Sender: TObject);
-		procedure CreateLane(Sender: TObject; ModalResult: TModalResult);
 	public
 		constructor Create(AOwner: TComponent); override;
+		procedure LoadLanesComplete(Sender: TObject);
 		procedure ReAlign(); override;
 	end;
 
 	TLocalStorage = class(IStorage)
-	protected
+	public
 		function GetItem(const Name: String): String;
 		procedure SetItem(const Name, Value: String);
-	public
 		function HasItem(const Name: String): Boolean;
+	public
+		property Items[I: String]: String read GetItem write SetItem;
 	end;
 
 var
@@ -60,14 +59,50 @@ implementation
 
 { TMainForm }
 
+procedure TMainForm.AddBoardButtonClick(Sender: TObject);
+var
+	LModalPipeline: TBoardModalPipeline;
+	LCreatePipeline: TCreateBoardPipeline;
+	LLoadPipeline: TLoadBoardPipeline;
+begin
+	LModalPipeline := FPipelines.New(TBoardModalPipeline) as TBoardModalPipeline;
+	LCreatePipeline := FPipelines.New(TCreateBoardPipeline) as TCreateBoardPipeline;
+	LLoadPipeline := FPipelines.New(TLoadBoardPipeline) as TLoadBoardPipeline;
+
+	LModalPipeline.Form := self;
+	LModalPipeline.SetNext(LCreatePipeline);
+
+	LCreatePipeline.SetNext(LLoadPipeline);
+
+	LLoadPipeline.SetNext(@self.LoadBoardComplete);
+
+	LModalPipeline.Start(nil);
+end;
+
 procedure TMainForm.AddLaneButtonClick(Sender: TObject);
+var
+	LModalPipeline: TLaneModalPipeline;
+	LCreatePipeline: TCreateLanePipeline;
+	LLoadPipeline: TLoadLanePipeline;
 begin
 	if FState.Boards.Current = nil then begin
 		ShowMessage('Please create or select a board');
 		exit;
 	end;
 
-	TNewLaneForm.Create(self).ShowModal(@CreateLane);
+	LModalPipeline := FPipelines.New(TLaneModalPipeline) as TLaneModalPipeline;
+	LCreatePipeline := FPipelines.New(TCreateLanePipeline) as TCreateLanePipeline;
+	LLoadPipeline := FPipelines.New(TLoadLanePipeline) as TLoadLanePipeline;
+
+	LModalPipeline.Form := self;
+	LModalPipeline.BoardId := FState.Boards.Current.Id;
+	LModalPipeline.SetNext(LCreatePipeline);
+
+	LCreatePipeline.SetNext(LLoadPipeline);
+
+	LLoadPipeline.SetNext(@self.LoadLaneComplete);
+
+	LModalPipeline.Start(nil);
 end;
 
 procedure TMainForm.DeleteBoard(Sender: TObject);
@@ -90,26 +125,6 @@ begin
 	LConfirmPipeline.Start(nil);
 end;
 
-procedure TMainForm.AddBoardButtonClick(Sender: TObject);
-var
-	LModalPipeline: TBoardModalPipeline;
-	LCreatePipeline: TCreateBoardPipeline;
-	LLoadPipeline: TLoadBoardPipeline;
-begin
-	LModalPipeline := FPipelines.New(TBoardModalPipeline) as TBoardModalPipeline;
-	LCreatePipeline := FPipelines.New(TCreateBoardPipeline) as TCreateBoardPipeline;
-	LLoadPipeline := FPipelines.New(TLoadBoardPipeline) as TLoadBoardPipeline;
-
-	LModalPipeline.Form := self;
-	LModalPipeline.SetNext(LCreatePipeline);
-
-	LCreatePipeline.SetNext(LLoadPipeline);
-
-	LLoadPipeline.SetNext(@self.LoadBoardComplete);
-
-	LModalPipeline.Start(nil);
-end;
-
 procedure TMainForm.BoardChanged(Sender: TObject);
 begin
 	if BoardListCombo.ItemIndex >= 0 then begin
@@ -123,8 +138,12 @@ begin
 end;
 
 procedure TMainForm.Load(Sender: TObject);
+var
+	LLoadPipeline: TLoadSystemBoardsPipeline;
 begin
-	GContainer.BoardsApi.LoadBoards(@self.LoadBoardsComplete);
+	LLoadPipeline := FPipelines.New(TLoadSystemBoardsPipeline) as TLoadSystemBoardsPipeline;
+	LLoadPipeline.SetNext(@self.LoadBoardsComplete);
+	LLoadPipeline.Start(nil);
 end;
 
 procedure TMainForm.BoardComboReload;
@@ -156,20 +175,21 @@ begin
 
 	for I := 0 to FState.Lanes.Count - 1 do begin
 		LLaneFrame := TLaneFrame.Create(self);
-	   	LLaneFrame.Parent := BoardPanel;
+		LLaneFrame.Parent := BoardPanel;
 		LLaneFrame.Lane := FState.Lanes.Items[I];
 	end;
 end;
 
 procedure TMainForm.EnterBoard;
+var
+	LLanesPipeline: TLoadBoardLanesPipeline;
 begin
 	if FState.Boards.Current = nil then exit;
-	GContainer.LanesApi.LoadLanes(@LoadLanesComplete, FState.Boards.Current.Id);
-end;
 
-procedure TMainForm.CreateLaneComplete(Sender: TObject);
-begin
-	GContainer.LanesApi.LoadLane(@LoadLaneComplete, TGeneralSuccessApiData(Sender).Value.Id);
+	LLanesPipeline := FPipelines.New(TLoadBoardLanesPipeline) as TLoadBoardLanesPipeline;
+	LLanesPipeline.Data := FState.Boards.Current;
+	LLanesPipeline.SetNext(@self.LoadLanesComplete);
+	LLanesPipeline.Start(nil);
 end;
 
 procedure TMainForm.DeleteBoardComplete(Sender: TObject);
@@ -186,49 +206,19 @@ begin
 end;
 
 procedure TMainForm.LoadLaneComplete(Sender: TObject);
-var
-	LLane: TLaneData;
 begin
-	LLane := TLanesApiData(Sender).Snatch;
-	FState.Lanes.Add([LLane]);
 	LanesReload;
 end;
 
 procedure TMainForm.LoadBoardsComplete(Sender: TObject);
-var
-	LResponse: TBoardsApiDataList;
 begin
-	LResponse := Sender as TBoardsApiDataList;
-	// TODO: handle pagination
-	FState.Boards.Init(LResponse.Value);
 	BoardComboReload;
 	EnterBoard;
 end;
 
 procedure TMainForm.LoadLanesComplete(Sender: TObject);
-var
-	LResponse: TLanesApiDataList;
 begin
-	LResponse := Sender as TLanesApiDataList;
-	// TODO: handle pagination
-	FState.Lanes.Init(LResponse.Value);
 	LanesReload;
-end;
-
-procedure TMainForm.CreateLane(Sender: TObject; ModalResult: TModalResult);
-var
-	LModal: TNewLaneForm;
-	LData: TLaneData;
-begin
-	LModal := TNewLaneForm(Sender);
-	if ModalResult = mrOk then begin
-		LData := LModal.NewLaneData;
-		LData.BoardId := FState.Boards.Current.Id;
-		GContainer.LanesApi.CreateLane(@CreateLaneComplete, LData);
-	end;
-
-	Self.RemoveComponent(LModal);
-	LModal.Free;
 end;
 
 constructor TMainForm.Create(AOwner: TComponent);

@@ -47,17 +47,14 @@ type
 
 	IStorage = interface
 	['{4923fe8c-3623-428e-a4f7-a90e80b48402}']
-	protected
 		function GetItem(const Name: String): String;
 		procedure SetItem(const Name, Value: String);
-	public
 		function HasItem(const Name: String): Boolean;
 		property Items[I: String]: String read GetItem write SetItem;
 	end;
 
 	IBoardsApi = interface
 	['{2f90c07b-b363-49eb-9cc7-a97a94de3f6d}']
-	public
 		procedure LoadBoard(Event: TNotifyEvent; const Id: TUlid);
 		procedure DeleteBoard(Event: TNotifyEvent; const Id: TUlid);
 		procedure LoadBoards(Event: TNotifyEvent);
@@ -65,8 +62,7 @@ type
 	end;
 
 	ILanesApi = interface
-	['{2f90c07b-b363-49eb-9cc7-a97a94de3f6d}']
-	public
+	['{99ea450d-2085-42a6-8c3a-70ca9bd331bb}']
 		procedure LoadLane(Event: TNotifyEvent; const Id: TUlid);
 		procedure DeleteLane(Event: TNotifyEvent; const Id: TUlid);
 		procedure LoadLanes(Event: TNotifyEvent; const BoardId: TUlid);
