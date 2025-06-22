@@ -15,6 +15,7 @@ type
 		CancelButton: TWButton;
 		NameEdit: TWEdit;
 		NameLabel: TWLabel;
+		procedure KeyPress(Sender: TObject; var Key: char);
 	private
 		FLaneData: TLaneData;
 		function GetNewLaneData: TLaneData;
@@ -33,6 +34,12 @@ implementation
 destructor TNewLaneForm.Destroy();
 begin
 	FLaneData.Free;
+end;
+
+procedure TNewLaneForm.KeyPress(Sender: TObject; var Key: char);
+begin
+	if ord(Key) = 13 then
+		self.ModalResult := mrOk;
 end;
 
 function TNewLaneForm.GetNewLaneData: TLaneData;

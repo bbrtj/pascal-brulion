@@ -13,9 +13,9 @@ object NewBoardForm: TNewBoardForm
   ScalingDesign = True
   object NameLabel: TWLabel
     Left = 8
-    Height = 15
+    Height = 14
     Top = 16
-    Width = 36
+    Width = 33
     Caption = 'Name'
   end
   object NameEdit: TWEdit
@@ -25,13 +25,14 @@ object NewBoardForm: TNewBoardForm
     AnchorSideTop.Side = asrCenter
     AnchorSideRight.Control = ConfirmButton
     AnchorSideRight.Side = asrBottom
-    Left = 52
-    Height = 23
+    Left = 49
+    Height = 22
     Top = 12
-    Width = 250
+    Width = 253
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 8
     TabOrder = 2
+    OnKeyPress = KeyPress
   end
   object ConfirmButton: TWButton
     Left = 227
@@ -44,11 +45,14 @@ object NewBoardForm: TNewBoardForm
     TabOrder = 0
   end
   object CancelButton: TWButton
-    Left = 141
+    AnchorSideTop.Control = ConfirmButton
+    AnchorSideRight.Control = ConfirmButton
+    Left = 144
     Height = 25
     Top = 47
     Width = 75
-    Anchors = [akRight, akBottom]
+    Anchors = [akTop, akRight, akBottom]
+    BorderSpacing.Right = 8
     Caption = 'Cancel'
     ModalResult = 2
     TabOrder = 1

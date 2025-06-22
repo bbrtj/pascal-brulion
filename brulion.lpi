@@ -94,6 +94,7 @@
         <ComponentName Value="NewLaneForm"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="CustomForm"/>
+        <ResourceBaseClassname Value="TWForm"/>
         <UnitName Value="NewLane"/>
       </Unit>
       <Unit>
@@ -104,6 +105,14 @@
         <ResourceBaseClass Value="CustomForm"/>
         <ResourceBaseClassname Value="TWForm"/>
         <UnitName Value="NewBoard"/>
+      </Unit>
+      <Unit>
+        <Filename Value="forms/confirmdialog.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="ConfirmDialogForm"/>
+        <ResourceBaseClass Value="CustomForm"/>
+        <ResourceBaseClassname Value="TWForm"/>
+        <UnitName Value="ConfirmDialog"/>
       </Unit>
     </Units>
   </ProjectOptions>

@@ -6,7 +6,7 @@ interface
 
 uses SysUtils, Classes, Forms, Controls, Dialogs,
 	BrulionPipelines, BrulionState, BrulionContainer, BrulionTypes,
-	NewBoard, NewLane;
+	NewBoard, NewLane, ConfirmDialog;
 
 type
 
@@ -53,19 +53,19 @@ begin
 		self.Finish(Sender)
 	else
 		self.Fail(Sender);
+
+	self.Form.RemoveComponent(TComponent(Sender));
+	Sender.Free;
 end;
 
 procedure TConfirmPipeline.Start(Sender: TObject);
+var
+	LDialog: TConfirmDialogForm;
 begin
 	inherited;
-	MessageDlg(
-		self.Form,
-		FConfirmText,
-		mtWarning,
-		mbYesNo,
-		mbNo,
-		@self.Response
-	);
+	LDialog := TConfirmDialogForm.Create(self.Form);
+	LDialog.DialogText := self.ConfirmText;
+	LDialog.ShowModal(@self.Response);
 end;
 
 procedure TBoardModalPipeline.Response(Sender: TObject; ModalResult: TModalResult);

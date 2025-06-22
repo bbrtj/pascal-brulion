@@ -15,6 +15,7 @@ type
 		CancelButton: TWButton;
 		NameEdit: TWEdit;
 		NameLabel: TWLabel;
+		procedure KeyPress(Sender: TObject; var Key: char);
 	private
 		FBoardData: TBoardData;
 		function GetNewBoardData: TBoardData;
@@ -29,6 +30,12 @@ implementation
 {$R *.lfm}
 
 { TNewBoardForm }
+
+procedure TNewBoardForm.KeyPress(Sender: TObject; var Key: char);
+begin
+	if ord(Key) = 13 then
+		self.ModalResult := mrOk;
+end;
 
 destructor TNewBoardForm.Destroy();
 begin
