@@ -20,15 +20,13 @@ type
 		procedure KeyPress(Sender: TObject; var Key: char);
 	private
 		FNoteData: TNoteData;
-		function GetNewNoteData: TNoteData;
+		function GetNoteData: TNoteData;
+		procedure SetNoteData(AValue: TNoteData);
 	public
 		destructor Destroy; override;
 	public
-		property NewNoteData: TNoteData read GetNewNoteData;
+		property NoteData: TNoteData read GetNoteData write SetNoteData;
 	end;
-
-var
-	NewNoteForm: TNewNoteForm;
 
 implementation
 
@@ -46,13 +44,19 @@ begin
 		self.ModalResult := mrOk;
 end;
 
-function TNewNoteForm.GetNewNoteData(): TNoteData;
+function TNewNoteForm.GetNoteData(): TNoteData;
 begin
-	FNoteData.Free;
-	FNoteData := TNoteData.Create;
-	FNoteData.Content := ContentEdit.Lines.Text;
+	if FNoteData = nil then
+		FNoteData := TNoteData.Create;
 
+	FNoteData.Content := ContentEdit.Lines.Text;
 	result := FNoteData;
+end;
+
+procedure TNewNoteForm.SetNoteData(AValue: TNoteData);
+begin
+	FNoteData := AValue;
+	ContentEdit.Lines.Text := FNoteData.Content;
 end;
 
 end.

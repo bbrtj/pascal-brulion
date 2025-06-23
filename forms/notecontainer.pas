@@ -6,7 +6,8 @@ interface
 
 uses
 	JS, Classes, SysUtils, Graphics, Controls, Forms, Dialogs, WebCtrls,
-	BrulionContainer, BrulionTypes, UniqName;
+	BrulionContainer, BrulionTypes, BrulionUiPipelines, BrulionPipelines,
+	UniqName;
 
 type
 
@@ -14,8 +15,10 @@ type
 
 	TNoteFrame = class(TWFrame)
 		NoteContent: TWLabel;
+		procedure UpdateNote(Sender: TObject);
 	private
 		FNote: TNoteData;
+		procedure NoteUpdated(Sender: TObject);
 		procedure SetNote(AValue: TNoteData);
 		procedure SetParent(AValue: TWinControl);
 	public
@@ -28,9 +31,34 @@ type
 
 implementation
 
-uses LanesContainer;
+uses LanesContainer, MainWindow;
 
 {$R *.lfm}
+
+procedure TNoteFrame.UpdateNote(Sender: TObject);
+var
+	LModalPipeline: TNoteModalPipeline;
+	LUpdatePipeline: TUpdateNotePipeline;
+begin
+	LModalPipeline := TPipelineManager(GContainer[csPipelineManager])
+		.New(TNoteModalPipeline) as TNoteModalPipeline;
+	LUpdatePipeline := TPipelineManager(GContainer[csPipelineManager])
+		.New(TUpdateNotePipeline) as TUpdateNotePipeline;
+
+	LModalPipeline.Form := TMainForm(self.Owner.Owner);
+	LModalPipeline.NoteData := self.Note;
+	LModalPipeline.SetNext(LUpdatePipeline);
+
+	LUpdatePipeline.SetNext(@self.NoteUpdated);
+
+	LModalPipeline.Start(nil);
+end;
+
+procedure TNoteFrame.NoteUpdated(Sender: TObject);
+begin
+	// force update form
+	self.Note := self.Note;
+end;
 
 procedure TNoteFrame.SetNote(AValue: TNoteData);
 begin

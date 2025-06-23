@@ -133,6 +133,7 @@ type
 		procedure DeleteNote(Event: TNotifyEvent; const Id: TUlid);
 		procedure LoadNotes(Event: TNotifyEvent; const LaneId: TUlid);
 		procedure CreateNote(Event: TNotifyEvent; const Note: TNoteData);
+		procedure UpdateNote(Event: TNotifyEvent; const Note: TNoteData);
 	end;
 
 function JoinUrl(const Base, Url: String): String;
@@ -465,6 +466,13 @@ begin
 	self.GetAjax(Event, TGeneralSuccessApiData.Create).Post(CUrl, Serialize(Note, ssInsert));
 end;
 
+procedure TNotesApi.UpdateNote(Event: TNotifyEvent; const Note: TNoteData);
+const
+	CUrl = '';
+begin
+	self.GetAjax(Event, TGeneralEmptyApiData.Create).Put(JoinUrl(CUrl, Note.Id), Serialize(Note, ssUpdate));
+end;
+
 function JoinUrl(const Base, Url: String): String;
 const
 	CUrlSeparator = '/';
@@ -490,7 +498,7 @@ end;
 function Serialize(const Value: TBoardData; Stage: TSerializationStage): TJsonData;
 begin
 	result := TJsonObject.Create;
-	if Stage <> ssInsert then
+	if Stage = ssFull then
 		TJsonObject(result).Add('id', Value.Id);
 
 	TJsonObject(result).Add('name', Value.Name);
@@ -499,7 +507,7 @@ end;
 function Serialize(const Value: TLaneData; Stage: TSerializationStage): TJsonData;
 begin
 	result := TJsonObject.Create;
-	if Stage <> ssInsert then
+	if Stage = ssFull then
 		TJsonObject(result).Add('id', Value.Id);
 	TJsonObject(result).Add('board_id', Value.BoardId);
 	TJsonObject(result).Add('name', Value.Name);
@@ -508,7 +516,7 @@ end;
 function Serialize(const Value: TNoteData; Stage: TSerializationStage): TJsonData;
 begin
 	result := TJsonObject.Create;
-	if Stage <> ssInsert then
+	if Stage = ssFull then
 		TJsonObject(result).Add('id', Value.Id);
 	TJsonObject(result).Add('lane_id', Value.LaneId);
 	TJsonObject(result).Add('content', Value.Content);

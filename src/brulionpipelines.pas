@@ -180,6 +180,11 @@ type
 		procedure Start(Sender: TObject); override;
 	end;
 
+	TUpdateNotePipeline = class(TNotePipeline)
+	public
+		procedure Start(Sender: TObject); override;
+	end;
+
 	TDeleteNotePipeline = class(TNotePipeline)
 	protected
 		procedure Finish(Sender: TObject); override;
@@ -464,6 +469,12 @@ procedure TCreateNotePipeline.Start(Sender: TObject);
 begin
 	inherited;
 	GContainer.NotesApi.CreateNote(@self.Finish, self.Data);
+end;
+
+procedure TUpdateNotePipeline.Start(Sender: TObject);
+begin
+	inherited;
+	GContainer.NotesApi.UpdateNote(@self.Finish, self.Data);
 end;
 
 procedure TDeleteNotePipeline.Finish(Sender: TObject);

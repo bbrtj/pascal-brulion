@@ -48,12 +48,15 @@ type
 	TNoteModalPipeline = class(TUIPipeline)
 	private
 		FLaneId: TUlid;
+		FNoteData: TNoteData;
 	private
 		procedure Response(Sender: TObject; ModalResult: TModalResult);
+		procedure SetNoteData(AValue: TNoteData);
 	public
 		procedure Start(Sender: TObject); override;
 	public
 		property LaneId: TUlid read FLaneId write FLaneId;
+		property NoteData: TNoteData read FNoteData write SetNoteData;
 	end;
 
 implementation
@@ -130,7 +133,7 @@ var
 begin
 	LModal := TNewNoteForm(Sender);
 	if ModalResult = mrOk then begin
-		LData := LModal.NewNoteData;
+		LData := LModal.NoteData;
 		LData.LaneId := self.LaneId;
 		self.Finish(LData);
 	end
@@ -141,10 +144,23 @@ begin
 	LModal.Free;
 end;
 
+procedure TNoteModalPipeline.SetNoteData(AValue: TNoteData);
+begin
+	FNoteData := AValue;
+	FLaneId := FNoteData.LaneId;
+end;
+
 procedure TNoteModalPipeline.Start(Sender: TObject);
+var
+	LForm: TNewNoteForm;
 begin
 	inherited;
-	TNewNoteForm.Create(self.Form).ShowModal(@self.Response);
+
+	LForm := TNewNoteForm.Create(self.Form);
+	if self.NoteData <> nil then
+		LForm.NoteData := self.NoteData;
+
+	LForm.ShowModal(@self.Response);
 end;
 
 end.

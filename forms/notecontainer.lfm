@@ -23,5 +23,6 @@ object NoteFrame: TNoteFrame
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoSize = False
     Caption = 'NoteContent'
+    OnDblClick = UpdateNote
   end
 end
