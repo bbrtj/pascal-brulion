@@ -4,7 +4,7 @@ unit BrulionState;
 
 interface
 
-uses SysUtils,
+uses SysUtils, Generics.Collections,
 	BrulionTypes, BrulionContainer;
 
 type
@@ -56,14 +56,25 @@ type
 		property CurrentIndex: Integer read GetCurrentIndex;
 	end;
 
-	TBrulionLanesState = class(specialize TBrulionStateHolder<TLaneData>)
+	TBrulionNotesState = class(specialize TBrulionStateHolder<TNoteData>)
 	end;
+
+	TBrulionLanesState = class(specialize TBrulionStateHolder<TLaneData>)
+	public
+		procedure Remove(AItem: TLaneData); override;
+		procedure Clear(); override;
+	end;
+
+	TBrulionLaneNotesDict = specialize TDictionary<TUlid, TBrulionNotesState>;
 
 	TBrulionState = class
 	private
 		FContainer: TContainer;
 		FBoards: TBrulionBoardsState;
 		FLanes: TBrulionLanesState;
+		FNotes: TBrulionLaneNotesDict;
+	private
+		function GetNotesByLaneId(Id: TUlid): TBrulionNotesState;
 	public
 		constructor Create(Container: TContainer = nil);
 		destructor Destroy; override;
@@ -71,6 +82,7 @@ type
 		property Container: TContainer read FContainer;
 		property Boards: TBrulionBoardsState read FBoards;
 		property Lanes: TBrulionLanesState read FLanes;
+		property Notes[Id: TUlid]: TBrulionNotesState read GetNotesByLaneId;
 	end;
 
 implementation
@@ -206,15 +218,44 @@ begin
 	FCurrentBoard := nil;
 end;
 
+procedure TBrulionLanesState.Remove(AItem: TLaneData);
+begin
+	// notes state holder will be kept around in memory, but empty
+	self.Parent.Notes[AItem.Id].Clear;
+
+	inherited;
+end;
+
+procedure TBrulionLanesState.Clear();
+var
+	I: Integer;
+begin
+	// notes state holders will be kept around in memory, but empty
+	for I := 0 to self.Count - 1 do
+		self.Parent.Notes[self.Items[I].Id].Clear;
+
+	inherited;
+end;
+
+function TBrulionState.GetNotesByLaneId(Id: TUlid): TBrulionNotesState;
+begin
+	if not FNotes.ContainsKey(Id) then
+		FNotes.Add(Id, TBrulionNotesState.Create(self));
+
+	result := FNotes.Items[Id];
+end;
+
 constructor TBrulionState.Create(Container: TContainer);
 begin
 	FContainer := GetContainer(Container);
 	FLanes := TBrulionLanesState.Create(self);
 	FBoards := TBrulionBoardsState.Create(self);
+	FNotes := TBrulionLaneNotesDict.Create;
 end;
 
 destructor TBrulionState.Destroy();
 begin
+	FNotes.Free;
 	FBoards.Free;
 	FLanes.Free;
 	FContainer.Free;

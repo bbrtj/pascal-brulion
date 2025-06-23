@@ -28,18 +28,24 @@ object NewLaneForm: TNewLaneForm
     Left = 49
     Height = 22
     Top = 12
-    Width = 253
+    Width = 260
     Anchors = [akTop, akLeft, akRight]
     BorderSpacing.Left = 8
     TabOrder = 2
     OnKeyPress = KeyPress
   end
   object ConfirmButton: TWButton
-    Left = 227
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 234
     Height = 25
-    Top = 47
+    Top = 57
     Width = 75
     Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 4
+    BorderSpacing.Bottom = 4
     Caption = 'Add'
     ModalResult = 1
     TabOrder = 0
@@ -47,9 +53,11 @@ object NewLaneForm: TNewLaneForm
   object CancelButton: TWButton
     AnchorSideTop.Control = ConfirmButton
     AnchorSideRight.Control = ConfirmButton
-    Left = 144
+    AnchorSideBottom.Control = ConfirmButton
+    AnchorSideBottom.Side = asrBottom
+    Left = 151
     Height = 25
-    Top = 47
+    Top = 57
     Width = 75
     Anchors = [akTop, akRight, akBottom]
     BorderSpacing.Right = 8

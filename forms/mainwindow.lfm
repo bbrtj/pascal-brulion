@@ -10,10 +10,15 @@ object MainForm: TMainForm
   OnCreate = Load
   ScalingDesign = True
   object TopMenuPanel: TWPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
     Left = 0
     Height = 40
     Top = 0
     Width = 800
+    Anchors = [akTop, akLeft, akRight]
     BevelOuter = bvNone
     Caption = 'TopMenuPanel'
     ClientHeight = 40
@@ -21,10 +26,14 @@ object MainForm: TMainForm
     HandleId = 'top-menu'
     TabOrder = 0
     object AddLaneButton: TWButton
+      AnchorSideLeft.Control = TopMenuPanel
+      AnchorSideTop.Control = TopMenuPanel
       Left = 8
       Height = 23
       Top = 8
       Width = 77
+      BorderSpacing.Left = 8
+      BorderSpacing.Top = 8
       Caption = 'Add lane'
       TabOrder = 0
       OnClick = AddLaneButtonClick
@@ -32,7 +41,7 @@ object MainForm: TMainForm
     object AddBoardButton: TWButton
       AnchorSideTop.Control = BoardListCombo
       AnchorSideRight.Control = BoardListCombo
-      Left = 575
+      Left = 574
       Height = 23
       Top = 8
       Width = 77
@@ -45,23 +54,28 @@ object MainForm: TMainForm
     object BoardListCombo: TWComboBox
       AnchorSideTop.Control = DeleteBoardButton
       AnchorSideRight.Control = DeleteBoardButton
-      Left = 660
-      Height = 23
+      Left = 659
+      Height = 22
       Top = 8
       Width = 102
       Anchors = [akTop, akRight]
       BorderSpacing.Right = 8
-      ItemHeight = 23
+      ItemHeight = 22
       TabOrder = 2
       OnChange = BoardChanged
     end
     object DeleteBoardButton: TWButton
-      Left = 770
+      AnchorSideTop.Control = TopMenuPanel
+      AnchorSideRight.Control = TopMenuPanel
+      AnchorSideRight.Side = asrBottom
+      Left = 769
       Height = 23
       Hint = 'Delete this board permanently'
       Top = 8
       Width = 23
       Anchors = [akTop, akRight]
+      BorderSpacing.Top = 8
+      BorderSpacing.Right = 8
       Caption = 'X'
       HandleClass = 'button-danger'
       ParentShowHint = False
@@ -71,13 +85,18 @@ object MainForm: TMainForm
     end
   end
   object BoardPanel: TWPanel
-    AnchorSideLeft.Control = TopMenuPanel
+    AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = TopMenuPanel
     AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
     Left = 0
     Height = 460
     Top = 40
     Width = 800
+    Anchors = [akTop, akLeft, akRight, akBottom]
     BevelOuter = bvNone
     Caption = 'BoardPanel'
     HandleId = 'lanes-container'

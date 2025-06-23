@@ -34,6 +34,7 @@ implementation
 destructor TNewLaneForm.Destroy();
 begin
 	FLaneData.Free;
+	inherited;
 end;
 
 procedure TNewLaneForm.KeyPress(Sender: TObject; var Key: char);

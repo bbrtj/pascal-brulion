@@ -6,7 +6,7 @@ interface
 
 uses SysUtils, Classes, Forms, Controls, Dialogs,
 	BrulionPipelines, BrulionState, BrulionContainer, BrulionTypes,
-	NewBoard, NewLane, ConfirmDialog;
+	NewBoard, NewLane, NewNote, ConfirmDialog;
 
 type
 
@@ -43,6 +43,17 @@ type
 		procedure Start(Sender: TObject); override;
 	public
 		property BoardId: TUlid read FBoardId write FBoardId;
+	end;
+
+	TNoteModalPipeline = class(TUIPipeline)
+	private
+		FLaneId: TUlid;
+	private
+		procedure Response(Sender: TObject; ModalResult: TModalResult);
+	public
+		procedure Start(Sender: TObject); override;
+	public
+		property LaneId: TUlid read FLaneId write FLaneId;
 	end;
 
 implementation
@@ -110,6 +121,30 @@ procedure TLaneModalPipeline.Start(Sender: TObject);
 begin
 	inherited;
 	TNewLaneForm.Create(self.Form).ShowModal(@self.Response);
+end;
+
+procedure TNoteModalPipeline.Response(Sender: TObject; ModalResult: TModalResult);
+var
+	LModal: TNewNoteForm;
+	LData: TNoteData;
+begin
+	LModal := TNewNoteForm(Sender);
+	if ModalResult = mrOk then begin
+		LData := LModal.NewNoteData;
+		LData.LaneId := self.LaneId;
+		self.Finish(LData);
+	end
+	else
+		self.Fail(Sender);
+
+	self.Form.RemoveComponent(LModal);
+	LModal.Free;
+end;
+
+procedure TNoteModalPipeline.Start(Sender: TObject);
+begin
+	inherited;
+	TNewNoteForm.Create(self.Form).ShowModal(@self.Response);
 end;
 
 end.

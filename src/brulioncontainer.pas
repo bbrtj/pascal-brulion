@@ -13,6 +13,7 @@ type
 		csStorage, // IStorage
 		csBoardsApi, // IBoardsApi
 		csLanesApi, // ILanesApi
+		csNotesApi, // INotesApi
 		csState,
 		csPipelineManager
 	);
@@ -27,16 +28,18 @@ type
 		function GetStorage(): IStorage;
 		function GetBoardsApi(): IBoardsApi;
 		function GetLanesApi(): ILanesApi;
+		function GetNotesApi(): INotesApi;
 	public
 		destructor Destroy; override;
 	public
 		procedure ServiceOwned(Slot: TContainerSlots; AValue: Boolean = True);
 		procedure Assign(Other: TContainer);
 	public
-		property Services[Slot: TContainerSlots]: TObject read GetService write SetService;
+		property Services[Slot: TContainerSlots]: TObject read GetService write SetService; default;
 		property Storage: IStorage read GetStorage;
 		property BoardsApi: IBoardsApi read GetBoardsApi;
 		property LanesApi: ILanesApi read GetLanesApi;
+		property NotesApi: INotesApi read GetNotesApi;
 	end;
 
 var
@@ -73,6 +76,11 @@ end;
 function TContainer.GetLanesApi(): ILanesApi;
 begin
 	result := self.GetService(csLanesApi) as ILanesApi;
+end;
+
+function TContainer.GetNotesApi(): INotesApi;
+begin
+	result := self.GetService(csNotesApi) as INotesApi;
 end;
 
 destructor TContainer.Destroy;

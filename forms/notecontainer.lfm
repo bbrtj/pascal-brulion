@@ -1,0 +1,27 @@
+object NoteFrame: TNoteFrame
+  Left = 0
+  Height = 88
+  Top = 0
+  Width = 200
+  ClientHeight = 88
+  ClientWidth = 200
+  ParentFont = False
+  TabOrder = 0
+  DesignLeft = 510
+  DesignTop = 26
+  object NoteContent: TWLabel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 0
+    Height = 88
+    Top = 0
+    Width = 200
+    Anchors = [akTop, akLeft, akRight, akBottom]
+    AutoSize = False
+    Caption = 'NoteContent'
+  end
+end

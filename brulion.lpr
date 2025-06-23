@@ -1,7 +1,7 @@
 program brulion;
 
 uses
-  Interfaces, Forms, MainWindow, NewBoard;
+  Interfaces, Forms, MainWindow;
 
 {$R *.res}
 

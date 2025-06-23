@@ -110,9 +110,28 @@
         <Filename Value="forms/confirmdialog.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="ConfirmDialogForm"/>
+        <HasResources Value="True"/>
         <ResourceBaseClass Value="CustomForm"/>
         <ResourceBaseClassname Value="TWForm"/>
         <UnitName Value="ConfirmDialog"/>
+      </Unit>
+      <Unit>
+        <Filename Value="forms/newnote.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="NewNoteForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="CustomForm"/>
+        <ResourceBaseClassname Value="TWForm"/>
+        <UnitName Value="NewNote"/>
+      </Unit>
+      <Unit>
+        <Filename Value="forms/notecontainer.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="NoteFrame"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="Other"/>
+        <ResourceBaseClassname Value="TWFrame"/>
+        <UnitName Value="NoteContainer"/>
       </Unit>
     </Units>
   </ProjectOptions>

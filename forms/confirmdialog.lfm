@@ -1,34 +1,48 @@
 object ConfirmDialogForm: TConfirmDialogForm
   Left = 299
-  Height = 86
+  Height = 83
   Top = 250
   Width = 312
   ActiveControl = CancelButton
   AlphaBlend = False
   AlphaBlendValue = 255
   Caption = 'ConfirmDialogForm'
-  ClientHeight = 86
+  ClientHeight = 83
   ClientWidth = 312
   HandleClass = 'with-border'
   ScalingDesign = True
   object DialogBox: TWLabel
-    Left = 8
-    Height = 32
-    Top = 8
-    Width = 296
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = ConfirmButton
+    Left = 4
+    Height = 42
+    Top = 4
+    Width = 304
     Alignment = taCenter
-    Anchors = [akTop, akLeft, akRight]
+    Anchors = [akTop, akLeft, akRight, akBottom]
     AutoSize = False
+    BorderSpacing.Left = 4
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 4
+    BorderSpacing.Bottom = 8
     Caption = 'A place for a dialog to appear'
   end
   object ConfirmButton: TWButton
     AnchorSideLeft.Side = asrBottom
-    Left = 224
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 233
     Height = 25
-    Top = 48
+    Top = 54
     Width = 75
     Anchors = [akRight, akBottom]
-    BorderSpacing.Left = 8
+    BorderSpacing.Right = 4
+    BorderSpacing.Bottom = 4
     Caption = 'Yes'
     ModalResult = 6
     TabOrder = 1
@@ -36,11 +50,13 @@ object ConfirmDialogForm: TConfirmDialogForm
   object CancelButton: TWButton
     AnchorSideTop.Control = ConfirmButton
     AnchorSideRight.Control = ConfirmButton
-    Left = 141
+    AnchorSideBottom.Control = ConfirmButton
+    AnchorSideBottom.Side = asrBottom
+    Left = 150
     Height = 25
-    Top = 48
+    Top = 54
     Width = 75
-    Anchors = [akTop, akRight]
+    Anchors = [akTop, akRight, akBottom]
     BorderSpacing.Right = 8
     Caption = 'No'
     ModalResult = 7

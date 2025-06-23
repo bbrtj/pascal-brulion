@@ -69,6 +69,14 @@ type
 		procedure CreateLane(Event: TNotifyEvent; const Lane: TLaneData);
 	end;
 
+	INotesApi = interface
+	['{1eee7e38-4554-4388-84fd-6e04ebc653e2}']
+		procedure LoadNote(Event: TNotifyEvent; const Id: TUlid);
+		procedure DeleteNote(Event: TNotifyEvent; const Id: TUlid);
+		procedure LoadNotes(Event: TNotifyEvent; const LaneId: TUlid);
+		procedure CreateNote(Event: TNotifyEvent; const Note: TNoteData);
+	end;
+
 implementation
 
 end.

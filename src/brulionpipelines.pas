@@ -44,6 +44,20 @@ type
 		procedure Cleanup();
 	end;
 
+	TCreatePipelineProc = function(Arg: TObject): TPipeline of object;
+	TForkPipeline = class(TPipeline)
+	private
+		FBuildPipelineProc: TCreatePipelineProc;
+		FPipelinesCount: Integer;
+	protected
+		function BuildPipeline(Arg: TObject): TPipeline; virtual;
+		procedure Finish(Sender: TObject); override;
+	public
+		procedure Start(Sender: TObject); override;
+	public
+		property BuildPipelineProc: TCreatePipelineProc read FBuildPipelineProc write FBuildPipelineProc;
+	end;
+
 	TLoadSystemBoardsPipeline = class(TPipeline)
 	protected
 		procedure Finish(Sender: TObject); override;
@@ -130,6 +144,49 @@ type
 		procedure Start(Sender: TObject); override;
 	end;
 
+	TLoadLaneNotesPipeline = class(TLanePipeline)
+	protected
+		procedure Finish(Sender: TObject); override;
+	public
+		procedure Start(Sender: TObject); override;
+	end;
+
+	{ Note pipelines }
+
+	TLoadNotePipeline = class(TPipeline)
+	private
+		FId: TUlid;
+	protected
+		procedure Finish(Sender: TObject); override;
+	public
+		procedure Start(Sender: TObject); override;
+	public
+		property Id: TUlid read FId write FId;
+	end;
+
+	TNotePipeline = class abstract(TPipeline)
+	private
+		FData: TNoteData;
+	public
+		procedure Start(Sender: TObject); override;
+	public
+		property Data: TNoteData read FData write FData;
+	end;
+
+	TCreateNotePipeline = class(TNotePipeline)
+	protected
+		procedure Finish(Sender: TObject); override;
+	public
+		procedure Start(Sender: TObject); override;
+	end;
+
+	TDeleteNotePipeline = class(TNotePipeline)
+	protected
+		procedure Finish(Sender: TObject); override;
+	public
+		procedure Start(Sender: TObject); override;
+	end;
+
 implementation
 
 procedure TPipeline.Finish(Sender: TObject);
@@ -185,6 +242,37 @@ begin
 			FPipelines.Delete(I);
 	end;
 end;
+
+function TForkPipeline.BuildPipeline(Arg: TObject): TPipeline;
+begin
+	result := FBuildPipelineProc(Arg);
+	if result <> nil then
+		Inc(FPipelinesCount);
+end;
+
+procedure TForkPipeline.Finish(Sender: TObject);
+begin
+	Dec(FPipelinesCount);
+
+	if FPipelinesCount = 0 then
+		inherited Finish(self);
+end;
+
+procedure TForkPipeline.Start(Sender: TObject);
+var
+	LPipeline: TPipeline;
+begin
+	inherited;
+	FPipelinesCount := 0;
+
+	LPipeline := self.BuildPipeline(Sender);
+	while LPipeline <> nil do begin
+		LPipeline.SetNext(@self.Finish);
+		LPipeline.Start(nil);
+		LPipeline := self.BuildPipeline(Sender);
+	end;
+end;
+
 
 procedure TLoadSystemBoardsPipeline.Finish(Sender: TObject);
 var
@@ -323,6 +411,71 @@ procedure TDeleteLanePipeline.Start(Sender: TObject);
 begin
 	inherited;
 	GContainer.LanesApi.DeleteLane(@self.Finish, self.Data.Id);
+end;
+
+procedure TLoadLaneNotesPipeline.Finish(Sender: TObject);
+var
+	LResponse: TNotesApiDataList;
+begin
+	LResponse := Sender as TNotesApiDataList;
+	// TODO: handle pagination
+	TBrulionState(GContainer.Services[csState]).Notes[self.Data.Id].Init(LResponse.Value);
+	inherited;
+end;
+
+procedure TLoadLaneNotesPipeline.Start(Sender: TObject);
+begin
+	inherited;
+	GContainer.NotesApi.LoadNotes(@self.Finish, self.Data.Id);
+end;
+
+procedure TLoadNotePipeline.Finish(Sender: TObject);
+var
+	LData: TNoteData;
+begin
+	LData := TNotesApiData(Sender).Snatch;
+	TBrulionState(GContainer.Services[csState]).Notes[LData.LaneId].Add([LData]);
+	inherited Finish(LData);
+end;
+
+procedure TLoadNotePipeline.Start(Sender: TObject);
+begin
+	inherited;
+	if (self.Id = CEmptyUlid) and (Sender <> nil) and (Sender is TGeneralSuccessData) then
+		self.Id := TGeneralSuccessData(Sender).Id;
+
+	GContainer.NotesApi.LoadNote(@self.Finish, self.Id);
+end;
+
+procedure TNotePipeline.Start(Sender: TObject);
+begin
+	inherited;
+	if (self.Data = nil) and (Sender <> nil) and (Sender is TNoteData) then
+		self.Data := Sender as TNoteData;
+end;
+
+procedure TCreateNotePipeline.Finish(Sender: TObject);
+begin
+	// no need to transfer API success, just the actual data
+	inherited Finish(TGeneralSuccessApiData(Sender).Value);
+end;
+
+procedure TCreateNotePipeline.Start(Sender: TObject);
+begin
+	inherited;
+	GContainer.NotesApi.CreateNote(@self.Finish, self.Data);
+end;
+
+procedure TDeleteNotePipeline.Finish(Sender: TObject);
+begin
+	TBrulionState(GContainer.Services[csState]).Notes[self.Data.LaneId].Remove(self.Data);
+	inherited;
+end;
+
+procedure TDeleteNotePipeline.Start(Sender: TObject);
+begin
+	inherited;
+	GContainer.NotesApi.DeleteNote(@self.Finish, self.Data.Id);
 end;
 
 end.

@@ -10,35 +10,69 @@ object LaneFrame: TLaneFrame
   OnResize = LaneFrameResize
   DesignLeft = 299
   DesignTop = 27
-  object WPanel1: TWPanel
+  object LanePanel: TWPanel
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = LaneNameLabel
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 176
-    Top = 32
+    Height = 177
+    Top = 23
     Width = 200
+    Anchors = [akTop, akLeft, akRight, akBottom]
     BevelOuter = bvNone
-    Caption = 'WPanel1'
+    BorderSpacing.Top = 4
+    Caption = 'LanePanel'
     ParentColor = False
     TabOrder = 0
   end
   object LaneNameLabel: TWLabel
-    Left = 8
+    AnchorSideLeft.Control = Owner
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = NewNoteButton
+    Left = 4
     Height = 15
-    Top = 8
-    Width = 152
+    Top = 4
+    Width = 130
+    Anchors = [akTop, akLeft, akRight]
     AutoSize = False
+    BorderSpacing.Left = 4
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 4
     Caption = 'LaneNameLabel'
   end
-  object DeleteLaneButton: TWButton
-    AnchorSideLeft.Control = LaneNameLabel
+  object NewNoteButton: TWButton
     AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = LaneNameLabel
-    AnchorSideTop.Side = asrCenter
-    Left = 168
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = DeleteLaneButton
+    Left = 138
     Height = 23
     Hint = 'Delete this lane permanently'
     Top = 4
     Width = 27
-    BorderSpacing.Left = 8
+    Anchors = [akTop, akRight]
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 4
+    Caption = '+'
+    TabOrder = 2
+    OnClick = NewNote
+  end
+  object DeleteLaneButton: TWButton
+    AnchorSideLeft.Side = asrBottom
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    Left = 169
+    Height = 23
+    Hint = 'Delete this lane permanently'
+    Top = 4
+    Width = 27
+    Anchors = [akTop, akRight]
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 4
     Caption = 'X'
     HandleClass = 'button-danger'
     TabOrder = 1

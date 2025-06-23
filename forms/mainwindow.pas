@@ -28,6 +28,9 @@ type
 		FState: TBrulionState;
 		FPipelines: TPipelineManager;
 	private
+		FLastNoteLoadPipeline: Integer;
+		function BuildNoteLoadPipeline(Arg: TObject): TPipeline;
+	private
 		procedure BoardComboReload;
 		procedure LanesReload;
 		procedure EnterBoard;
@@ -146,6 +149,16 @@ begin
 	LLoadPipeline.Start(nil);
 end;
 
+function TMainForm.BuildNoteLoadPipeline(Arg: TObject): TPipeline;
+begin
+	if FLastNoteLoadPipeline > High(TLanesApiDataList(Arg).Value) then
+		exit(nil);
+
+	result := FPipelines.New(TLoadLaneNotesPipeline);
+	TLoadLaneNotesPipeline(result).Data := TLanesApiDataList(Arg).Value[FLastNoteLoadPipeline];
+	Inc(FLastNoteLoadPipeline);
+end;
+
 procedure TMainForm.BoardComboReload;
 var
 	I: Integer;
@@ -177,22 +190,31 @@ begin
 		LLaneFrame := TLaneFrame.Create(self);
 		LLaneFrame.Parent := BoardPanel;
 		LLaneFrame.Lane := FState.Lanes.Items[I];
+		LLaneFrame.Reload;
 	end;
 end;
 
 procedure TMainForm.EnterBoard;
 var
 	LLanesPipeline: TLoadBoardLanesPipeline;
+	LForkPipeline: TForkPipeline;
 begin
+	FLastNoteLoadPipeline := 0;
 	if FState.Boards.Current = nil then exit;
-
-	LLanesPipeline := FPipelines.New(TLoadBoardLanesPipeline) as TLoadBoardLanesPipeline;
-	LLanesPipeline.Data := FState.Boards.Current;
-	LLanesPipeline.SetNext(@self.LoadLanesComplete);
-	LLanesPipeline.Start(nil);
 
 	// clean up finished pipelines
 	FPipelines.Cleanup;
+
+	LLanesPipeline := FPipelines.New(TLoadBoardLanesPipeline) as TLoadBoardLanesPipeline;
+	LForkPipeline := FPipelines.New(TForkPipeline) as TForkPipeline;
+
+	LLanesPipeline.Data := FState.Boards.Current;
+	LLanesPipeline.SetNext(LForkPipeline);
+
+	LForkPipeline.BuildPipelineProc := @self.BuildNoteLoadPipeline;
+	LForkPipeline.SetNext(@self.LoadLanesComplete);
+
+	LLanesPipeline.Start(nil);
 end;
 
 procedure TMainForm.DeleteBoardComplete(Sender: TObject);
@@ -227,22 +249,25 @@ end;
 constructor TMainForm.Create(AOwner: TComponent);
 begin
 	inherited Create(AOwner);
-	GContainer.Services[csStorage] := TLocalStorage.Create;
+	GContainer[csStorage] := TLocalStorage.Create;
 	GContainer.ServiceOwned(csStorage);
 
-	GContainer.Services[csState] := TBrulionState.Create;
+	GContainer[csState] := TBrulionState.Create;
 	GContainer.ServiceOwned(csState);
-	FState := GContainer.Services[csState] as TBrulionState;
+	FState := GContainer[csState] as TBrulionState;
 
-	GContainer.Services[csBoardsApi] := TBoardsApi.Create;
+	GContainer[csBoardsApi] := TBoardsApi.Create;
 	GContainer.ServiceOwned(csBoardsApi);
 
-	GContainer.Services[csLanesApi] := TLanesApi.Create;
+	GContainer[csLanesApi] := TLanesApi.Create;
 	GContainer.ServiceOwned(csLanesApi);
 
-	GContainer.Services[csPipelineManager] := TPipelineManager.Create;
+	GContainer[csNotesApi] := TNotesApi.Create;
+	GContainer.ServiceOwned(csNotesApi);
+
+	GContainer[csPipelineManager] := TPipelineManager.Create;
 	GContainer.ServiceOwned(csPipelineManager);
-	FPipelines := GContainer.Services[csPipelineManager] as TPipelineManager;
+	FPipelines := GContainer[csPipelineManager] as TPipelineManager;
 end;
 
 procedure TMainForm.ReAlign();
