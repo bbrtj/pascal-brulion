@@ -16,12 +16,13 @@ object NoteFrame: TNoteFrame
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 0
-    Height = 88
-    Top = 0
-    Width = 200
+    Left = 8
+    Height = 72
+    Top = 8
+    Width = 184
     Anchors = [akTop, akLeft, akRight, akBottom]
     AutoSize = False
+    BorderSpacing.Around = 8
     Caption = 'NoteContent'
     OnDblClick = UpdateNote
   end

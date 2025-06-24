@@ -1,45 +1,56 @@
 object NewBoardForm: TNewBoardForm
   Left = 299
-  Height = 86
+  Height = 79
   Top = 250
   Width = 313
   ActiveControl = NameEdit
   AlphaBlend = False
   AlphaBlendValue = 255
   Caption = 'NewBoardForm'
-  ClientHeight = 86
+  ClientHeight = 79
   ClientWidth = 313
   HandleClass = 'with-border'
   ScalingDesign = True
   object NameLabel: TWLabel
-    Left = 8
+    AnchorSideTop.Control = NameEdit
+    AnchorSideTop.Side = asrCenter
+    AnchorSideRight.Control = NameEdit
+    Left = 7
     Height = 14
     Top = 16
     Width = 33
+    Anchors = [akTop, akRight]
     Caption = 'Name'
   end
   object NameEdit: TWEdit
-    AnchorSideLeft.Control = NameLabel
     AnchorSideLeft.Side = asrBottom
-    AnchorSideTop.Control = NameLabel
-    AnchorSideTop.Side = asrCenter
-    AnchorSideRight.Control = ConfirmButton
+    AnchorSideTop.Control = Owner
+    AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 49
+    Left = 48
     Height = 22
     Top = 12
     Width = 253
-    Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 8
+    Anchors = [akTop, akRight]
+    BorderSpacing.Top = 4
+    BorderSpacing.Right = 4
+    BorderSpacing.Around = 8
     TabOrder = 2
     OnKeyPress = KeyPress
   end
   object ConfirmButton: TWButton
-    Left = 227
+    AnchorSideRight.Control = Owner
+    AnchorSideRight.Side = asrBottom
+    AnchorSideBottom.Control = Owner
+    AnchorSideBottom.Side = asrBottom
+    Left = 226
     Height = 25
-    Top = 47
+    Top = 42
     Width = 75
     Anchors = [akRight, akBottom]
+    BorderSpacing.Right = 4
+    BorderSpacing.Bottom = 4
+    BorderSpacing.Around = 8
     Caption = 'Add'
     ModalResult = 1
     TabOrder = 0
@@ -49,9 +60,9 @@ object NewBoardForm: TNewBoardForm
     AnchorSideRight.Control = ConfirmButton
     AnchorSideBottom.Control = ConfirmButton
     AnchorSideBottom.Side = asrBottom
-    Left = 144
+    Left = 143
     Height = 25
-    Top = 47
+    Top = 42
     Width = 75
     Anchors = [akTop, akRight, akBottom]
     BorderSpacing.Right = 8

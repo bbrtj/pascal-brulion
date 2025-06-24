@@ -40,6 +40,7 @@ object MainForm: TMainForm
     end
     object AddBoardButton: TWButton
       AnchorSideTop.Control = BoardListCombo
+      AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = BoardListCombo
       Left = 574
       Height = 23
@@ -53,6 +54,7 @@ object MainForm: TMainForm
     end
     object BoardListCombo: TWComboBox
       AnchorSideTop.Control = DeleteBoardButton
+      AnchorSideTop.Side = asrCenter
       AnchorSideRight.Control = DeleteBoardButton
       Left = 659
       Height = 22

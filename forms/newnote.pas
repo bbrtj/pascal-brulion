@@ -40,8 +40,6 @@ end;
 
 procedure TNewNoteForm.KeyPress(Sender: TObject; var Key: char);
 begin
-	if ord(Key) = 13 then
-		self.ModalResult := mrOk;
 end;
 
 function TNewNoteForm.GetNoteData(): TNoteData;
