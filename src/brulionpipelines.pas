@@ -336,7 +336,7 @@ procedure TForkPipeline.Finish(Sender: TObject);
 begin
 	Dec(FPipelinesCount);
 
-	if FPipelinesCount = 0 then
+	if FPipelinesCount <= 0 then
 		inherited Finish(self);
 end;
 
@@ -353,6 +353,10 @@ begin
 		LPipeline.Start(nil);
 		LPipeline := self.BuildPipeline(Sender);
 	end;
+
+	// if there is nothing to fork, make sure to just push the pipeline further
+	if FPipelinesCount = 0 then
+		self.Finish(nil);
 end;
 
 
