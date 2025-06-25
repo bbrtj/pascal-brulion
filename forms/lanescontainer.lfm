@@ -19,27 +19,28 @@ object LaneFrame: TLaneFrame
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
     Left = 0
-    Height = 177
-    Top = 23
+    Height = 169
+    Top = 31
     Width = 200
     Anchors = [akTop, akLeft, akRight, akBottom]
     BevelOuter = bvNone
-    BorderSpacing.Top = 4
+    BorderSpacing.Top = 8
     Caption = 'LanePanel'
     ParentColor = False
     TabOrder = 0
   end
   object LaneNameLabel: TWLabel
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = Owner
+    AnchorSideTop.Control = NewNoteButton
+    AnchorSideTop.Side = asrCenter
     AnchorSideRight.Control = NewNoteButton
-    Left = 4
+    Left = 8
     Height = 15
-    Top = 4
-    Width = 130
+    Top = 8
+    Width = 126
     Anchors = [akTop, akLeft, akRight]
     AutoSize = False
-    BorderSpacing.Left = 4
+    BorderSpacing.Left = 8
     BorderSpacing.Top = 4
     BorderSpacing.Right = 4
     Caption = 'LaneNameLabel'

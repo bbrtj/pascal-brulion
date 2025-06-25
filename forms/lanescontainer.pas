@@ -28,6 +28,7 @@ type
 	public
 		constructor Create(AOwner: TComponent); override;
 	public
+		procedure NoteDeleted(Sender: TObject);
 		procedure Reload();
 		procedure ReAlign(); override;
 	public
@@ -131,6 +132,11 @@ constructor TLaneFrame.Create(AOwner: TComponent);
 begin
 	inherited;
 	SetUniqName(self);
+end;
+
+procedure TLaneFrame.NoteDeleted(Sender: TObject);
+begin
+	self.Reload;
 end;
 
 procedure TLaneFrame.Reload;

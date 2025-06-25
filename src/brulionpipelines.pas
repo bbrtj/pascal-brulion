@@ -8,6 +8,8 @@ uses SysUtils, Classes, Generics.Collections,
 	BrulionState, BrulionApiConnector, BrulionContainer, BrulionTypes;
 
 type
+	EPipeline = class(Exception);
+
 	TPipelineStatus = (
 		psNew,
 		psStarted,
@@ -56,6 +58,22 @@ type
 		procedure Start(Sender: TObject); override;
 	public
 		property BuildPipelineProc: TCreatePipelineProc read FBuildPipelineProc write FBuildPipelineProc;
+	end;
+
+	TSenderWithArg = class
+	public
+		Sender: TObject;
+		Arg: Byte;
+		constructor Create(Sender: TObject; Arg: Byte);
+	end;
+
+	TConditionPipeline = class(TPipeline)
+	private
+		FOnArg: Array of TNotifyEvent;
+	public
+		procedure Start(Sender: TObject); override;
+		procedure SetNext(Target: TNotifyEvent; Arg: Byte);
+		procedure SetNext(Target: TPipeline; Arg: Byte);
 	end;
 
 	TLoadSystemBoardsPipeline = class(TPipeline)
@@ -487,6 +505,51 @@ procedure TDeleteNotePipeline.Start(Sender: TObject);
 begin
 	inherited;
 	GContainer.NotesApi.DeleteNote(@self.Finish, self.Data.Id);
+end;
+
+constructor TSenderWithArg.Create(Sender: TObject; Arg: Byte);
+begin
+	self.Sender := Sender;
+	self.Arg := Arg;
+end;
+
+procedure TConditionPipeline.Start(Sender: TObject);
+var
+	Arg: Byte;
+	RealSender: TObject;
+begin
+	inherited;
+
+	try
+		if not(Sender is TSenderWithArg) then
+			raise EPipeline.Create('Condition pipeline called without a proper argument');
+
+		Arg := TSenderWithArg(Sender).Arg;
+		RealSender := TSenderWithArg(Sender).Sender;
+		Sender.Free;
+
+		if Arg > High(FOnArg) then
+			raise EPipeline.Create('Condition pipeline has no handler for argument ' + IntToStr(Arg));
+
+		FOnArg[Arg](RealSender);
+		self.Finish(RealSender);
+	except
+		on E: EPipeline do self.Fail(E);
+	end;
+end;
+
+procedure TConditionPipeline.SetNext(Target: TNotifyEvent; Arg: Byte);
+begin
+	if Arg > High(FOnArg) then
+		SetLength(FOnArg, Arg + 1);
+	FOnArg[Arg] := Target;
+end;
+
+procedure TConditionPipeline.SetNext(Target: TPipeline; Arg: Byte);
+begin
+	if Arg > High(FOnArg) then
+		SetLength(FOnArg, Arg + 1);
+	FOnArg[Arg] := @Target.Start;
 end;
 
 end.

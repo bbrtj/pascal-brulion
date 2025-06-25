@@ -6,7 +6,7 @@ interface
 
 uses SysUtils, Classes, Forms, Controls, Dialogs,
 	BrulionPipelines, BrulionState, BrulionContainer, BrulionTypes,
-	NewBoard, NewLane, NewNote, ConfirmDialog;
+	NewBoard, NewLane, NewNote, EditNote, ConfirmDialog;
 
 type
 
@@ -20,6 +20,7 @@ type
 	TConfirmPipeline = class(TUIPipeline)
 	private
 		FConfirmText: String;
+		FSavedSender: TObject;
 	private
 		procedure Response(Sender: TObject; ModalResult: TModalResult);
 	public
@@ -48,15 +49,24 @@ type
 	TNoteModalPipeline = class(TUIPipeline)
 	private
 		FLaneId: TUlid;
-		FNoteData: TNoteData;
 	private
 		procedure Response(Sender: TObject; ModalResult: TModalResult);
-		procedure SetNoteData(AValue: TNoteData);
 	public
 		procedure Start(Sender: TObject); override;
 	public
 		property LaneId: TUlid read FLaneId write FLaneId;
-		property NoteData: TNoteData read FNoteData write SetNoteData;
+	end;
+
+	TNoteEditModalArg = (nemaEdit, nemaDelete);
+	TNoteEditModalPipeline = class(TUIPipeline)
+	private
+		FNoteData: TNoteData;
+	private
+		procedure Response(Sender: TObject; ModalResult: TModalResult);
+	public
+		procedure Start(Sender: TObject); override;
+	public
+		property NoteData: TNoteData read FNoteData write FNoteData;
 	end;
 
 implementation
@@ -64,9 +74,9 @@ implementation
 procedure TConfirmPipeline.Response(Sender: TObject; ModalResult: TModalResult);
 begin
 	if ModalResult = mrYes then
-		self.Finish(Sender)
+		self.Finish(FSavedSender)
 	else
-		self.Fail(Sender);
+		self.Fail(FSavedSender);
 
 	self.Form.RemoveComponent(TComponent(Sender));
 	Sender.Free;
@@ -77,6 +87,7 @@ var
 	LDialog: TConfirmDialogForm;
 begin
 	inherited;
+	FSavedSender := Sender;
 	LDialog := TConfirmDialogForm.Create(self.Form);
 	LDialog.DialogText := self.ConfirmText;
 	LDialog.ShowModal(@self.Response);
@@ -144,12 +155,6 @@ begin
 	LModal.Free;
 end;
 
-procedure TNoteModalPipeline.SetNoteData(AValue: TNoteData);
-begin
-	FNoteData := AValue;
-	FLaneId := FNoteData.LaneId;
-end;
-
 procedure TNoteModalPipeline.Start(Sender: TObject);
 var
 	LForm: TNewNoteForm;
@@ -157,9 +162,32 @@ begin
 	inherited;
 
 	LForm := TNewNoteForm.Create(self.Form);
-	if self.NoteData <> nil then
-		LForm.NoteData := self.NoteData;
+	LForm.ShowModal(@self.Response);
+end;
 
+procedure TNoteEditModalPipeline.Response(Sender: TObject; ModalResult: TModalResult);
+var
+	LModal: TEditNoteForm;
+begin
+	LModal := TEditNoteForm(Sender);
+	case ModalResult of
+		mrOk: self.Finish(TSenderWithArg.Create(LModal.NoteData, Ord(nemaEdit)));
+		mrAbort: self.Finish(TSenderWithArg.Create(LModal.NoteData, Ord(nemaDelete)));
+		else self.Fail(Sender);
+	end;
+
+	self.Form.RemoveComponent(LModal);
+	LModal.Free;
+end;
+
+procedure TNoteEditModalPipeline.Start(Sender: TObject);
+var
+	LForm: TEditNoteForm;
+begin
+	inherited;
+
+	LForm := TEditNoteForm.Create(self.Form);
+	LForm.NoteData := self.NoteData;
 	LForm.ShowModal(@self.Response);
 end;
 

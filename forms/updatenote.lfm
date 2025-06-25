@@ -1,0 +1,9 @@
+object WForm1: TWForm1
+  Left = 564
+  Height = 240
+  Top = 250
+  Width = 320
+  AlphaBlend = False
+  AlphaBlendValue = 255
+  Caption = 'WForm1'
+end

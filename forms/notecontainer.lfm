@@ -9,21 +9,42 @@ object NoteFrame: TNoteFrame
   TabOrder = 0
   DesignLeft = 510
   DesignTop = 26
-  object NoteContent: TWLabel
+  object WPanel1: TWPanel
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
-    Left = 8
-    Height = 72
-    Top = 8
-    Width = 184
+    Left = 4
+    Height = 80
+    Top = 4
+    Width = 192
     Anchors = [akTop, akLeft, akRight, akBottom]
-    AutoSize = False
-    BorderSpacing.Around = 8
-    Caption = 'NoteContent'
-    OnDblClick = UpdateNote
+    BevelOuter = bvNone
+    BorderSpacing.Around = 4
+    Caption = 'WPanel1'
+    ClientHeight = 80
+    ClientWidth = 192
+    HandleClass = 'note with-border'
+    TabOrder = 0
+    object NoteContent: TWLabel
+      AnchorSideLeft.Control = WPanel1
+      AnchorSideTop.Control = WPanel1
+      AnchorSideRight.Control = WPanel1
+      AnchorSideRight.Side = asrBottom
+      AnchorSideBottom.Control = WPanel1
+      AnchorSideBottom.Side = asrBottom
+      Left = 8
+      Height = 64
+      Top = 8
+      Width = 176
+      Anchors = [akTop, akLeft, akRight, akBottom]
+      AutoSize = False
+      BorderSpacing.Around = 8
+      Caption = 'NoteContent'
+      OnDblClick = UpdateNote
+      LabelElement = leParagraph
+    end
   end
 end

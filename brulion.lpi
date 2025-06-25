@@ -133,6 +133,15 @@
         <ResourceBaseClassname Value="TWFrame"/>
         <UnitName Value="NoteContainer"/>
       </Unit>
+      <Unit>
+        <Filename Value="forms/editnote.pas"/>
+        <IsPartOfProject Value="True"/>
+        <ComponentName Value="EditNoteForm"/>
+        <HasResources Value="True"/>
+        <ResourceBaseClass Value="CustomForm"/>
+        <ResourceBaseClassname Value="TWForm"/>
+        <UnitName Value="EditNote"/>
+      </Unit>
     </Units>
   </ProjectOptions>
   <CompilerOptions>

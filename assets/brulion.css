@@ -20,6 +20,10 @@
 	border-radius: 5px;
 }
 
+.note {
+	background: var(--gb-bg1);
+}
+
 .button-danger {
 	background-color: var(--gb-dark-red);
 	border-color: var(--gb-dark-red);

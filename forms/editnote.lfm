@@ -1,14 +1,13 @@
-object NewNoteForm: TNewNoteForm
-  Left = 509
+object EditNoteForm: TEditNoteForm
+  Left = 564
   Height = 162
   Top = 250
   Width = 320
   AlphaBlend = False
   AlphaBlendValue = 255
-  Caption = 'NewNoteForm'
+  Caption = 'EditNoteForm'
   ClientHeight = 162
   ClientWidth = 320
-  HandleClass = 'with-border'
   ScalingDesign = True
   object ContentLabel: TWLabel
     AnchorSideTop.Control = ContentEdit
@@ -35,7 +34,7 @@ object NewNoteForm: TNewNoteForm
     BorderSpacing.Top = 4
     BorderSpacing.Right = 4
     BorderSpacing.Around = 8
-    TabOrder = 2
+    TabOrder = 0
   end
   object ConfirmButton: TWButton
     AnchorSideRight.Control = Owner
@@ -50,23 +49,40 @@ object NewNoteForm: TNewNoteForm
     BorderSpacing.Right = 4
     BorderSpacing.Bottom = 4
     BorderSpacing.Around = 8
-    Caption = 'Add'
+    Caption = 'Update'
     ModalResult = 1
-    TabOrder = 0
+    TabOrder = 1
   end
   object CancelButton: TWButton
     AnchorSideTop.Control = ConfirmButton
+    AnchorSideTop.Side = asrCenter
     AnchorSideRight.Control = ConfirmButton
-    AnchorSideBottom.Control = ConfirmButton
     AnchorSideBottom.Side = asrBottom
     Left = 150
     Height = 25
     Top = 125
     Width = 75
-    Anchors = [akTop, akRight, akBottom]
+    Anchors = [akTop, akRight]
     BorderSpacing.Right = 8
     Caption = 'Cancel'
     ModalResult = 2
-    TabOrder = 1
+    TabOrder = 3
+  end
+  object DeleteButton: TWButton
+    AnchorSideTop.Control = CancelButton
+    AnchorSideTop.Side = asrCenter
+    AnchorSideRight.Control = CancelButton
+    AnchorSideBottom.Side = asrBottom
+    Left = 67
+    Height = 25
+    Top = 125
+    Width = 75
+    Anchors = [akTop, akRight]
+    BorderSpacing.Right = 8
+    Caption = 'Delete'
+    HandleClass = 'button-danger'
+    ModalResult = 3
+    TabOrder = 2
+    TabStop = False
   end
 end

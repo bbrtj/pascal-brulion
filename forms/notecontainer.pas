@@ -15,6 +15,7 @@ type
 
 	TNoteFrame = class(TWFrame)
 		NoteContent: TWLabel;
+		WPanel1: TWPanel;
 		procedure UpdateNote(Sender: TObject);
 	private
 		FNote: TNoteData;
@@ -37,17 +38,35 @@ uses LanesContainer, MainWindow;
 
 procedure TNoteFrame.UpdateNote(Sender: TObject);
 var
-	LModalPipeline: TNoteModalPipeline;
+	LModalPipeline: TNoteEditModalPipeline;
+	LConditionPipeline: TConditionPipeline;
+	LConfirmPipeline: TConfirmPipeline;
+	LDeletePipeline: TDeleteNotePipeline;
 	LUpdatePipeline: TUpdateNotePipeline;
 begin
 	LModalPipeline := TPipelineManager(GContainer[csPipelineManager])
-		.New(TNoteModalPipeline) as TNoteModalPipeline;
+		.New(TNoteEditModalPipeline) as TNoteEditModalPipeline;
+	LConditionPipeline := TPipelineManager(GContainer[csPipelineManager])
+		.New(TConditionPipeline) as TConditionPipeline;
+	LConfirmPipeline := TPipelineManager(GContainer[csPipelineManager])
+		.New(TConfirmPipeline) as TConfirmPipeline;
+	LDeletePipeline := TPipelineManager(GContainer[csPipelineManager])
+		.New(TDeleteNotePipeline) as TDeleteNotePipeline;
 	LUpdatePipeline := TPipelineManager(GContainer[csPipelineManager])
 		.New(TUpdateNotePipeline) as TUpdateNotePipeline;
 
 	LModalPipeline.Form := TMainForm(self.Owner.Owner);
 	LModalPipeline.NoteData := self.Note;
-	LModalPipeline.SetNext(LUpdatePipeline);
+	LModalPipeline.SetNext(LConditionPipeline);
+
+	LConditionPipeline.SetNext(LUpdatePipeline, Ord(nemaEdit));
+	LConditionPipeline.SetNext(LConfirmPipeline, Ord(nemaDelete));
+
+	LConfirmPipeline.Form := TMainForm(self.Owner.Owner);
+	LConfirmPipeline.ConfirmText := 'Permanently delete this note?';
+	LConfirmPipeline.SetNext(LDeletePipeline);
+
+	LDeletePipeline.SetNext(@TLaneFrame(self.Owner).NoteDeleted);
 
 	LUpdatePipeline.SetNext(@self.NoteUpdated);
 
