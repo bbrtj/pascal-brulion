@@ -34,7 +34,13 @@ type
 
 	TPipelineClass = class of TPipeline;
 
-	TPipelineList = specialize TObjectList<TPipeline>;
+	TKnownPipeline = record
+		Pipeline: TPipeline;
+		LastStatus: TPipelineStatus;
+		VisitedCount: Integer;
+	end;
+
+	TPipelineList = specialize TList<TKnownPipeline>;
 	TPipelineManager = class
 	private
 		FPipelines: TPipelineList;
@@ -245,24 +251,77 @@ begin
 end;
 
 destructor TPipelineManager.Destroy();
+var
+	I: Integer;
 begin
-	FPipelines.Free;
+	if FPipelines <> nil then begin
+		for I := 0 to FPipelines.Count - 1 do
+			FPipelines[I].Pipeline.Free;
+
+		FPipelines.Free;
+	end;
+
+	inherited;
 end;
 
 function TPipelineManager.New(Typ: TPipelineClass): TPipeline;
+var
+	LRec: TKnownPipeline;
 begin
 	result := Typ.Create;
-	FPipelines.Add(result);
+
+	LRec.Pipeline := result;
+	LRec.VisitedCount := 0;
+	LRec.LastStatus := result.Status;
+	FPipelines.Add(LRec);
 end;
 
 { Performs a periodic cleanup }
 procedure TPipelineManager.Cleanup();
+const
+	CLostThreshold = 1;
+	CStuckThreshold = 5;
 var
 	I: Integer;
+	LRemove: Boolean;
+	LRec: TKnownPipeline;
 begin
-	for I := FPipeLines.Count - 1 downto 0 do begin
-		if (FPipelines[I].Status = psFailed) or (FPipelines[I].Status = psFinished) then
+	for I := FPipelines.Count - 1 downto 0 do begin
+		LRec := FPipelines[I];
+		LRemove :=
+			(LRec.Pipeline.Status = psFailed)
+			or (LRec.Pipeline.Status = psFinished)
+			or (
+				(LRec.Pipeline.Status = psNew)
+				and (LRec.VisitedCount >= CLostThreshold)
+			)
+			or (
+				(LRec.Pipeline.Status = psStarted)
+				and (LRec.LastStatus = psStarted)
+				and (LRec.VisitedCount >= CStuckThreshold)
+			);
+
+		if LRemove then begin
+			{$IFDEF DEBUG}
+			writeln(
+				format(
+					'Removing a pipeline of type %s, status %d, seen %d times',
+					[
+						LRec.Pipeline.ClassName,
+						Ord(LRec.Pipeline.Status),
+						LRec.VisitedCount
+					]
+				)
+			);
+			{$ENDIF}
+			LRec.Pipeline.Free;
 			FPipelines.Delete(I);
+		end
+		else begin
+			Inc(LRec.VisitedCount);
+			LRec.LastStatus := LRec.Pipeline.Status;
+			FPipelines[I] := LRec;
+		end;
 	end;
 end;
 

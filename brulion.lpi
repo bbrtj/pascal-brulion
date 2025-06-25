@@ -46,8 +46,9 @@
           </Other>
         </CompilerOptions>
       </Item>
-      <SharedMatrixOptions Count="1">
+      <SharedMatrixOptions Count="2">
         <Item1 ID="654480912962" Modes="Default" Value="-dBrulionApiUrl:=&apos;http://localhost:5000/api&apos;"/>
+        <Item2 ID="857521971030" Modes="Default" Value="-dDEBUG"/>
       </SharedMatrixOptions>
     </BuildModes>
     <PublishOptions>
