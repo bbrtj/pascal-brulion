@@ -5,7 +5,7 @@ unit NoteContainer;
 interface
 
 uses
-	JS, Classes, SysUtils, Graphics, Controls, Forms, Dialogs, WebCtrls,
+	JS, Classes, SysUtils, Math, Graphics, Controls, Forms, Dialogs, WebCtrls,
 	BrulionContainer, BrulionTypes, BrulionUiPipelines, BrulionPipelines,
 	UniqName;
 
@@ -22,12 +22,14 @@ type
 		procedure NoteUpdated(Sender: TObject);
 		procedure SetNote(AValue: TNoteData);
 		procedure SetParent(AValue: TWinControl);
+		function GetRealHeight(): Integer;
 	public
 		constructor Create(AOwner: TComponent); override;
 	public
+		procedure ReAlign(); override;
+	public
 		property Parent write SetParent;
 		property Note: TNoteData read FNote write SetNote;
-
 	end;
 
 implementation
@@ -83,6 +85,7 @@ procedure TNoteFrame.SetNote(AValue: TNoteData);
 begin
 	FNote := AValue;
 	self.NoteContent.Caption := FNote.Content;
+	self.ReAlign;
 end;
 
 procedure TNoteFrame.SetParent(AValue: TWinControl);
@@ -90,10 +93,28 @@ begin
 	inherited Parent := AValue;
 end;
 
+function TNoteFrame.GetRealHeight(): Integer;
+const
+	CMinHeight = 60;
+begin
+	result := NoteContent.ContentElement.ScrollHeight;
+	result := Max(CMinHeight, result);
+end;
+
 constructor TNoteFrame.Create(AOwner: TComponent);
 begin
 	inherited;
 	SetUniqName(self);
+end;
+
+procedure TNoteFrame.ReAlign();
+begin
+	inherited;
+	if NoteContent = nil then exit;
+
+	NoteContent.Height := GetRealHeight;
+	WPanel1.Height := NoteContent.Height + NoteContent.BorderSpacing.Around * 2 + NoteContent.BorderSpacing.Top + NoteContent.BorderSpacing.Bottom;
+	Height := WPanel1.Height + WPanel1.BorderSpacing.Around * 2 + WPanel1.BorderSpacing.Top + WPanel1.BorderSpacing.Bottom;
 end;
 
 end.
