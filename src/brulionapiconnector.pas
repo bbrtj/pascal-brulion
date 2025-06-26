@@ -134,6 +134,7 @@ type
 		procedure LoadNotes(Event: TNotifyEvent; const LaneId: TUlid);
 		procedure CreateNote(Event: TNotifyEvent; const Note: TNoteData);
 		procedure UpdateNote(Event: TNotifyEvent; const Note: TNoteData);
+		procedure MoveNote(Event: TNotifyEvent; const Id, After: TUlid);
 	end;
 
 function JoinUrl(const Base, Url: String): String;
@@ -471,6 +472,18 @@ const
 	CUrl = '';
 begin
 	self.GetAjax(Event, TGeneralEmptyApiData.Create).Put(JoinUrl(CUrl, Note.Id), Serialize(Note, ssUpdate));
+end;
+
+procedure TNotesApi.MoveNote(Event: TNotifyEvent; const Id, After: TUlid);
+const
+	CUrl = '/move';
+var
+	LJson: TJsonObject;
+begin
+	LJson := TJsonObject.Create;
+	LJson.Add('after', After);
+
+	self.GetAjax(Event, TGeneralEmptyApiData.Create).Put(JoinUrl(CUrl, Id), LJson);
 end;
 
 function JoinUrl(const Base, Url: String): String;

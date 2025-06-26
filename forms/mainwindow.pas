@@ -6,7 +6,8 @@ uses
 	JS, Web, Classes, SysUtils, Graphics, Controls, Forms, WebCtrls, StdCtrls,
 	Contnrs, Dialogs,
 	NewBoard, NewLane, LanesContainer, BrulionTypes, BrulionApiConnector,
-	BrulionState, BrulionContainer, BrulionPipelines, BrulionUiPipelines;
+	BrulionState, BrulionContainer, BrulionPipelines, BrulionUiPipelines,
+	DragDrop;
 
 type
 
@@ -23,6 +24,8 @@ type
 		procedure AddLaneButtonClick(Sender: TObject);
 		procedure DeleteBoard(Sender: TObject);
 		procedure BoardChanged(Sender: TObject);
+		procedure DragEnd(Sender: TObject; Button: TMouseButton;
+			Shift: TShiftState; X, Y: NativeInt);
 		procedure Load(Sender: TObject);
 	private
 		FState: TBrulionState;
@@ -40,6 +43,7 @@ type
 		procedure LoadBoardsComplete(Sender: TObject);
 	public
 		constructor Create(AOwner: TComponent); override;
+		procedure ReloadLane(Id: TUlid);
 		procedure LoadLanesComplete(Sender: TObject);
 		procedure ReAlign(); override;
 	end;
@@ -138,6 +142,12 @@ begin
 	end;
 
 	EnterBoard;
+end;
+
+procedure TMainForm.DragEnd(Sender: TObject; Button: TMouseButton;
+	Shift: TShiftState; X, Y: NativeInt);
+begin
+	EndDragging;
 end;
 
 procedure TMainForm.Load(Sender: TObject);
@@ -239,6 +249,20 @@ procedure TMainForm.LoadBoardsComplete(Sender: TObject);
 begin
 	BoardComboReload;
 	EnterBoard;
+end;
+
+procedure TMainForm.ReloadLane(Id: TUlid);
+var
+	LLaneFrame: TLaneFrame;
+	I: Integer;
+begin
+	for I := BoardPanel.ControlCount - 1 downto 0 do begin
+		LLaneFrame := BoardPanel.Controls[I] as TLaneFrame;
+		if LLaneFrame.Lane.Id = Id then begin
+			LLaneFrame.Reload;
+			break;
+		end;
+	end;
 end;
 
 procedure TMainForm.LoadLanesComplete(Sender: TObject);

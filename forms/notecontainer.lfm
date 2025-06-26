@@ -16,8 +16,10 @@ object NoteFrame: TNoteFrame
     AnchorSideRight.Side = asrBottom
     AnchorSideBottom.Control = Owner
     AnchorSideBottom.Side = asrBottom
+    Cursor = crHandPoint
     Left = 4
     Height = 80
+    Hint = 'Double click to edit or delete this note.'#10'Drag to move this note around.'
     Top = 4
     Width = 192
     Anchors = [akTop, akLeft, akRight, akBottom]
@@ -27,6 +29,8 @@ object NoteFrame: TNoteFrame
     ClientHeight = 80
     ClientWidth = 192
     HandleClass = 'note with-border'
+    ParentShowHint = False
+    ShowHint = True
     TabOrder = 0
     object NoteContent: TWLabel
       AnchorSideLeft.Control = WPanel1
@@ -44,6 +48,9 @@ object NoteFrame: TNoteFrame
       BorderSpacing.Around = 8
       Caption = 'NoteContent'
       OnDblClick = UpdateNote
+      OnMouseDown = DragStart
+      OnMouseEnter = DragEnter
+      OnMouseUp = DragStop
       LabelElement = leParagraph
     end
   end

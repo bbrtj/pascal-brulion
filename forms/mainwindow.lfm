@@ -9,6 +9,7 @@ object MainForm: TMainForm
   ClientHeight = 500
   ClientWidth = 800
   OnCreate = Load
+  OnMouseUp = DragEnd
   ScalingDesign = True
   object TopMenuPanel: TWPanel
     AnchorSideLeft.Control = Owner

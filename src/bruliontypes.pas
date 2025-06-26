@@ -76,6 +76,7 @@ type
 		procedure LoadNotes(Event: TNotifyEvent; const LaneId: TUlid);
 		procedure CreateNote(Event: TNotifyEvent; const Note: TNoteData);
 		procedure UpdateNote(Event: TNotifyEvent; const Note: TNoteData);
+		procedure MoveNote(Event: TNotifyEvent; const Id, After: TUlid);
 	end;
 
 implementation

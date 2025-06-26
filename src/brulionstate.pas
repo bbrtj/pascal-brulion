@@ -21,8 +21,6 @@ type
 	private
 		function GetContainer(): TContainer;
 	protected
-		function GetIndex(AItem: T): Integer;
-	protected
 		property Parent: TBrulionState read FParent;
 		property Container: TContainer read GetContainer;
 	public
@@ -30,9 +28,11 @@ type
 		destructor Destroy; override;
 	public
 		function GetItem(Ind: Integer): T;
+		function GetIndex(AItem: T): Integer;
 		function GetCount(): Integer;
 		procedure Init(AItems: TArray); virtual;
 		procedure Add(AItems: TArray); virtual;
+		procedure Insert(AtPos: Integer; AItems: TArray); virtual;
 		procedure Remove(AItem: T); virtual;
 		procedure Clear(); virtual;
 	public
@@ -92,17 +92,6 @@ begin
 	result := FParent.Container;
 end;
 
-function TBrulionStateHolder.GetIndex(AItem: T): Integer;
-var
-	I: Integer;
-begin
-	result := -1;
-	for I := 0 to High(FItems) do begin
-		if FItems[I] = AItem then
-			exit(I);
-	end;
-end;
-
 constructor TBrulionStateHolder.Create(Parent: TBrulionState);
 begin
 	FParent := Parent;
@@ -122,6 +111,17 @@ begin
 		result := FItems[Ind];
 end;
 
+function TBrulionStateHolder.GetIndex(AItem: T): Integer;
+var
+	I: Integer;
+begin
+	result := -1;
+	for I := 0 to High(FItems) do begin
+		if FItems[I] = AItem then
+			exit(I);
+	end;
+end;
+
 function TBrulionStateHolder.GetCount(): Integer;
 begin
 	result := Length(FItems);
@@ -136,6 +136,25 @@ end;
 procedure TBrulionStateHolder.Add(AItems: TArray);
 begin
 	FItems := Concat(FItems, AItems);
+end;
+
+procedure TBrulionStateHolder.Insert(AtPos: Integer; AItems: TArray);
+var
+	I: Integer;
+	LTotalSize, LAddedSize: Integer;
+begin
+	LAddedSize := Length(AItems);
+	LTotalSize := Length(FItems) + LAddedSize;
+	SetLength(FItems, LTotalSize);
+
+	if (AtPos < 0) or (AtPos > length(FItems)) then
+		raise Exception.Create('bad position in Insert');
+
+	for I := LTotalSize - 1 downto AtPos + LAddedSize do
+		FItems[I] := FItems[I - LAddedSize];
+
+	for I := 0 to LAddedSize - 1 do
+		FItems[AtPos + I] := AItems[I];
 end;
 
 procedure TBrulionStateHolder.Remove(AItem: T);

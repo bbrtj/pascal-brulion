@@ -44,6 +44,7 @@ object LaneFrame: TLaneFrame
     BorderSpacing.Top = 4
     BorderSpacing.Right = 4
     Caption = 'LaneNameLabel'
+    LabelElement = leParagraph
   end
   object NewNoteButton: TWButton
     AnchorSideLeft.Side = asrBottom

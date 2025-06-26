@@ -216,6 +216,17 @@ type
 		procedure Start(Sender: TObject); override;
 	end;
 
+	TMoveNotePipeline = class(TNotePipeline)
+	private
+		FSource: TNoteData;
+	protected
+		procedure Finish(Sender: TObject); override;
+	public
+		procedure Start(Sender: TObject); override;
+	public
+		property Source: TNoteData read FSource write FSource;
+	end;
+
 implementation
 
 procedure TPipeline.Finish(Sender: TObject);
@@ -568,6 +579,22 @@ procedure TDeleteNotePipeline.Start(Sender: TObject);
 begin
 	inherited;
 	GContainer.NotesApi.DeleteNote(@self.Finish, self.Data.Id);
+end;
+
+procedure TMoveNotePipeline.Finish(Sender: TObject);
+var
+	LIndex: Integer;
+begin
+	TBrulionState(GContainer.Services[csState]).Notes[self.Data.LaneId].Remove(self.Source);
+	LIndex := TBrulionState(GContainer.Services[csState]).Notes[self.Data.LaneId].GetIndex(self.Data);
+	TBrulionState(GContainer.Services[csState]).Notes[self.Data.LaneId].Insert(LIndex + 1, [self.Source]);
+	inherited;
+end;
+
+procedure TMoveNotePipeline.Start(Sender: TObject);
+begin
+	inherited;
+	GContainer.NotesApi.MoveNote(@self.Finish, self.Source.Id, self.Data.Id);
 end;
 
 constructor TSenderWithArg.Create(Sender: TObject; Arg: Byte);
