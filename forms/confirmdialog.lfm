@@ -6,7 +6,7 @@ object ConfirmDialogForm: TConfirmDialogForm
   ActiveControl = CancelButton
   AlphaBlend = False
   AlphaBlendValue = 255
-  Caption = 'ConfirmDialogForm'
+  Caption = 'Confirm action'
   ClientHeight = 93
   ClientWidth = 312
   HandleClass = 'with-border'
@@ -29,6 +29,7 @@ object ConfirmDialogForm: TConfirmDialogForm
     BorderSpacing.Right = 4
     BorderSpacing.Around = 8
     Caption = 'A place for a dialog to appear'
+    LabelElement = leParagraph
   end
   object ConfirmButton: TWButton
     AnchorSideLeft.Side = asrBottom

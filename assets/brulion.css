@@ -14,22 +14,13 @@
 	overflow: visible !important;
 }
 
-#lanes-container > *:nth-child(2n - 1) .lane {
+.note {
 	background: var(--gb-bg1);
-}
-
-.lane-item {
-	border: solid 2px var(--accent);
-	border-radius: 5px;
 }
 
 .with-border {
 	border: solid 2px var(--accent);
 	border-radius: 5px;
-}
-
-.note {
-	background: var(--gb-bg1);
 }
 
 .button-danger {

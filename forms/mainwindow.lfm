@@ -5,6 +5,7 @@ object MainForm: TMainForm
   Width = 800
   AlphaBlend = False
   AlphaBlendValue = 255
+  Caption = 'Brulion'
   ClientHeight = 500
   ClientWidth = 800
   OnCreate = Load

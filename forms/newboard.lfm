@@ -6,7 +6,7 @@ object NewBoardForm: TNewBoardForm
   ActiveControl = NameEdit
   AlphaBlend = False
   AlphaBlendValue = 255
-  Caption = 'NewBoardForm'
+  Caption = 'New board'
   ClientHeight = 79
   ClientWidth = 313
   HandleClass = 'with-border'

@@ -3,9 +3,10 @@ object NewNoteForm: TNewNoteForm
   Height = 162
   Top = 250
   Width = 320
+  ActiveControl = ContentEdit
   AlphaBlend = False
   AlphaBlendValue = 255
-  Caption = 'NewNoteForm'
+  Caption = 'New note'
   ClientHeight = 162
   ClientWidth = 320
   HandleClass = 'with-border'

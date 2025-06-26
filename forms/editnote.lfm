@@ -3,9 +3,10 @@ object EditNoteForm: TEditNoteForm
   Height = 162
   Top = 250
   Width = 320
+  ActiveControl = ContentEdit
   AlphaBlend = False
   AlphaBlendValue = 255
-  Caption = 'EditNoteForm'
+  Caption = 'Edit or delete a note'
   ClientHeight = 162
   ClientWidth = 320
   ScalingDesign = True

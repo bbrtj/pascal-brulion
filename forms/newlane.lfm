@@ -6,7 +6,7 @@ object NewLaneForm: TNewLaneForm
   ActiveControl = NameEdit
   AlphaBlend = False
   AlphaBlendValue = 255
-  Caption = 'NewLaneForm'
+  Caption = 'New lane'
   ClientHeight = 79
   ClientWidth = 313
   HandleClass = 'with-border'
