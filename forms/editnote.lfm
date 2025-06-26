@@ -9,6 +9,7 @@ object EditNoteForm: TEditNoteForm
   Caption = 'Edit or delete a note'
   ClientHeight = 162
   ClientWidth = 320
+  HandleClass = 'with-border'
   ScalingDesign = True
   object ContentLabel: TWLabel
     AnchorSideTop.Control = ContentEdit
