@@ -43,7 +43,7 @@ type
 		procedure LoadBoardsComplete(Sender: TObject);
 	public
 		constructor Create(AOwner: TComponent); override;
-		procedure ReloadLane(Id: TUlid);
+		procedure ReloadDirtyLanes(Sender: TObject);
 		procedure LoadLanesComplete(Sender: TObject);
 		procedure ReAlign(); override;
 	end;
@@ -251,17 +251,18 @@ begin
 	EnterBoard;
 end;
 
-procedure TMainForm.ReloadLane(Id: TUlid);
+procedure TMainForm.ReloadDirtyLanes(Sender: TObject);
 var
 	LLaneFrame: TLaneFrame;
+	LLaneState: TBrulionLanesState;
 	I: Integer;
 begin
+	LLaneState := TBrulionState(GContainer[csState]).Lanes;
+
 	for I := BoardPanel.ControlCount - 1 downto 0 do begin
 		LLaneFrame := BoardPanel.Controls[I] as TLaneFrame;
-		if LLaneFrame.Lane.Id = Id then begin
+		if LLaneState.Dirty[LLaneFrame.Lane.Id] then
 			LLaneFrame.Reload;
-			break;
-		end;
 	end;
 end;
 

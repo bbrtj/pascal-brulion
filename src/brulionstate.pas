@@ -59,10 +59,20 @@ type
 	TBrulionNotesState = class(specialize TBrulionStateHolder<TNoteData>)
 	end;
 
+	TDirtyLanes = specialize TDictionary<TUlid, Boolean>;
 	TBrulionLanesState = class(specialize TBrulionStateHolder<TLaneData>)
+	private
+		FDirty: TDirtyLanes;
+		function IsDirty(Id: TUlid): Boolean;
+		procedure SetDirty(Id: TUlid; AValue: Boolean);
+	public
+		constructor Create(Parent: TBrulionState);
+		destructor Destroy; override;
 	public
 		procedure Remove(AItem: TLaneData); override;
 		procedure Clear(); override;
+	public
+		property Dirty[Id: TUlid]: Boolean read IsDirty write SetDirty;
 	end;
 
 	TBrulionLaneNotesDict = specialize TDictionary<TUlid, TBrulionNotesState>;
@@ -237,10 +247,36 @@ begin
 	FCurrentBoard := nil;
 end;
 
+function TBrulionLanesState.IsDirty(Id: TUlid): Boolean;
+begin
+	if not FDirty.ContainsKey(Id) then
+		result := false
+	else
+		result := FDirty.Items[Id];
+end;
+
+procedure TBrulionLanesState.SetDirty(Id: TUlid; AValue: Boolean);
+begin
+	FDirty.Items[Id] := AValue;
+end;
+
+constructor TBrulionLanesState.Create(Parent: TBrulionState);
+begin
+	inherited;
+	FDirty := TDirtyLanes.Create;
+end;
+
+destructor TBrulionLanesState.Destroy();
+begin
+	FDirty.Free;
+	inherited;
+end;
+
 procedure TBrulionLanesState.Remove(AItem: TLaneData);
 begin
 	// notes state holder will be kept around in memory, but empty
 	self.Parent.Notes[AItem.Id].Clear;
+	FDirty.Remove(AItem.Id);
 
 	inherited;
 end;
@@ -252,6 +288,8 @@ begin
 	// notes state holders will be kept around in memory, but empty
 	for I := 0 to self.Count - 1 do
 		self.Parent.Notes[self.Items[I].Id].Clear;
+
+	FDirty.Clear;
 
 	inherited;
 end;

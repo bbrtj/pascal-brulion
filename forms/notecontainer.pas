@@ -24,9 +24,7 @@ type
 		procedure UpdateNote(Sender: TObject);
 	private
 		FNote: TNoteData;
-		FLanesToRefresh: Array of TUlid;
 		procedure NoteUpdated(Sender: TObject);
-		procedure NotesMoved(Sender: TObject);
 		procedure SetNote(AValue: TNoteData);
 		procedure SetParent(AValue: TWinControl);
 		function GetRealHeight(): Integer;
@@ -100,7 +98,7 @@ procedure TNoteFrame.DragStop(Sender: TObject; Button: TMouseButton;
 	Shift: TShiftState; X, Y: NativeInt);
 var
 	LDragged: TObject;
-	LUpdatePipeline: TUpdateNotePipeline;
+	LUpdatePipeline: TChangeLanePipeline;
 	LMovePipeline: TMoveNotePipeline;
 	LNeedUpdating: Boolean;
 begin
@@ -111,26 +109,21 @@ begin
 	LMovePipeline := TPipelineManager(GContainer[csPipelineManager])
 		.New(TMoveNotePipeline) as TMoveNotePipeline;
 
-	FLanesToRefresh := [self.Note.LaneId];
+	TBrulionState(GContainer[csState]).Lanes.Dirty[self.Note.LaneId] := true;
+	TBrulionState(GContainer[csState]).Lanes.Dirty[TNoteData(LDragged).LaneId] := true;
+
 	LNeedUpdating := self.Note.LaneId <> TNoteData(LDragged).LaneId;
 	if LNeedUpdating then begin
 		LUpdatePipeline := TPipelineManager(GContainer[csPipelineManager])
-			.New(TUpdateNotePipeline) as TUpdateNotePipeline;
+			.New(TChangeLanePipeline) as TChangeLanePipeline;
 		LUpdatePipeline.Data := TNoteData(LDragged);
-
-		// move note to the new lane
-		TBrulionState(GContainer.Services[csState]).Notes[LUpdatePipeline.Data.LaneId].Remove(LUpdatePipeline.Data);
-		TBrulionState(GContainer.Services[csState]).Notes[self.Note.LaneId].Add([LUpdatePipeline.Data]);
-
-		// this lane must be refreshed last, as it will destroy its very object
-		FLanesToRefresh := Concat([LUpdatePipeline.Data.LaneId], FLanesToRefresh);
-		LUpdatePipeline.Data.LaneId := self.Note.LaneId;
+		LUpdatePipeline.NewLaneId := self.Note.LaneId;
 		LUpdatePipeline.SetNext(LMovePipeline);
 	end;
 
 	LMovePipeline.Source := TNoteData(LDragged);
 	LMovePipeline.Data := self.Note;
-	LMovePipeline.SetNext(@self.NotesMoved);
+	LMovePipeline.SetNext(@TMainForm(self.Owner.Owner).ReloadDirtyLanes);
 
 	if LNeedUpdating then
 		LUpdatePipeline.Start(nil)
@@ -138,24 +131,14 @@ begin
 		LMovePipeline.Start(nil);
 
 	{$IFDEF DEBUG}
-	writeln('dragged note ', TNoteData(LDragged).Id, ' onto ', self.Note.Id);
+	writeln('dragged note ', TNoteData(LDragged).Id, ' onto note ', self.Note.Id);
 	{$ENDIF}
-
 end;
 
 procedure TNoteFrame.NoteUpdated(Sender: TObject);
 begin
 	// force update form
 	self.Note := self.Note;
-end;
-
-procedure TNoteFrame.NotesMoved(Sender: TObject);
-var
-	I: Integer;
-begin
-	for I := low(FLanesToRefresh) to high(FLanesToRefresh) do begin
-		TMainForm(self.Owner.Owner).ReloadLane(FLanesToRefresh[I]);
-	end;
 end;
 
 procedure TNoteFrame.SetNote(AValue: TNoteData);

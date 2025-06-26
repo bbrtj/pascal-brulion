@@ -28,6 +28,7 @@ object LaneFrame: TLaneFrame
     Caption = 'LanePanel'
     ParentColor = False
     TabOrder = 0
+    OnMouseUp = DragStop
   end
   object LaneNameLabel: TWLabel
     AnchorSideLeft.Control = Owner

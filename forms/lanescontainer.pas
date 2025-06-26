@@ -6,7 +6,8 @@ uses
 	JS, Classes, SysUtils, Graphics, Controls, Forms, Dialogs, WebCtrls,
 	BrulionTypes, BrulionContainer, BrulionState, UniqName,
 	BrulionPipelines, BrulionUiPipelines,
-	NoteContainer;
+	NoteContainer,
+	DragDrop;
 
 type
 
@@ -18,6 +19,8 @@ type
 		DeleteLaneButton: TWButton;
 		LanePanel: TWPanel;
 		procedure DeleteLane(Sender: TObject);
+		procedure DragStop(Sender: TObject; Button: TMouseButton;
+			Shift: TShiftState; X, Y: NativeInt);
 		procedure LaneFrameResize(Sender: TObject);
 		procedure NewNote(Sender: TObject);
 	private
@@ -93,6 +96,33 @@ begin
 	LConfirmPipeline.Start(nil);
 end;
 
+procedure TLaneFrame.DragStop(Sender: TObject; Button: TMouseButton;
+	Shift: TShiftState; X, Y: NativeInt);
+var
+	LDragged: TObject;
+	LUpdatePipeline: TChangeLanePipeline;
+	LNeedUpdating: Boolean;
+begin
+	LDragged := EndDragging();
+	if (LDragged = nil) or not(LDragged is TNoteData) or (TNoteData(LDragged).LaneId = self.Lane.Id) then
+		exit;
+
+	TBrulionState(GContainer[csState]).Lanes.Dirty[self.Lane.Id] := true;
+	TBrulionState(GContainer[csState]).Lanes.Dirty[TNoteData(LDragged).LaneId] := true;
+
+	LUpdatePipeline := TPipelineManager(GContainer[csPipelineManager])
+		.New(TChangeLanePipeline) as TChangeLanePipeline;
+	LUpdatePipeline.Data := TNoteData(LDragged);
+	LUpdatePipeline.NewLaneId := self.Lane.Id;
+	LUpdatePipeline.SetNext(@TMainForm(self.Owner).ReloadDirtyLanes);
+
+	LUpdatePipeline.Start(nil);
+
+	{$IFDEF DEBUG}
+	writeln('dragged note ', TNoteData(LDragged).Id, ' onto lane ', self.Lane.Id);
+	{$ENDIF}
+end;
+
 procedure TLaneFrame.SetParent(AValue: TWinControl);
 begin
 	inherited Parent := AValue;
@@ -100,6 +130,8 @@ begin
 end;
 
 procedure TLaneFrame.ReAlign();
+const
+	CExtraPanelHeight = 100;
 var
 	LCurrentOffset: Integer;
 	I: Integer;
@@ -113,7 +145,8 @@ begin
 		LCurrentOffset += LanePanel.Controls[I].Height;
 	end;
 
-	LanePanel.Height := LCurrentOffset;
+	// extra height for better look and some drop area
+	LanePanel.Height := LCurrentOffset + CExtraPanelHeight;
 end;
 
 procedure TLaneFrame.NoteCreated(Sender: TObject);

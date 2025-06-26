@@ -21,6 +21,7 @@ type
 	private
 		FStatus: TPipelineStatus;
 		FOnFinish: TNotifyEvent;
+		FOnFail: TNotifyEvent;
 	protected
 		procedure Finish(Sender: TObject); virtual;
 		procedure Fail(Sender: TObject); virtual;
@@ -28,6 +29,8 @@ type
 		procedure Start(Sender: TObject); virtual;
 		procedure SetNext(Target: TNotifyEvent);
 		procedure SetNext(Target: TPipeline);
+		procedure SetFail(Target: TNotifyEvent);
+		procedure SetFail(Target: TPipeline);
 	public
 		property Status: TPipelineStatus read FStatus write FStatus;
 	end;
@@ -209,6 +212,20 @@ type
 		procedure Start(Sender: TObject); override;
 	end;
 
+	TChangeLanePipeline = class(TNotePipeline)
+	private
+		FNewLaneId: TUlid;
+		FOldLaneId: TUlid;
+		FUpdatePipeline: TUpdateNotePipeline;
+	protected
+		procedure Finish(Sender: TObject); override;
+		procedure Fail(Sender: TObject); override;
+	public
+		procedure Start(Sender: TObject); override;
+	public
+		property NewLaneId: TUlid read FNewLaneId write FNewLaneId;
+	end;
+
 	TDeleteNotePipeline = class(TNotePipeline)
 	protected
 		procedure Finish(Sender: TObject); override;
@@ -238,6 +255,8 @@ end;
 
 procedure TPipeline.Fail(Sender: TObject);
 begin
+	if FOnFail <> nil then
+		FOnFail(Sender);
 	FStatus := psFailed;
 end;
 
@@ -254,6 +273,16 @@ end;
 procedure TPipeline.SetNext(Target: TPipeline);
 begin
 	FOnFinish := @Target.Start;
+end;
+
+procedure TPipeline.SetFail(Target: TNotifyEvent);
+begin
+	FOnFail := Target;
+end;
+
+procedure TPipeline.SetFail(Target: TPipeline);
+begin
+	FOnFail := @Target.Start;
 end;
 
 constructor TPipelineManager.Create();
@@ -567,6 +596,38 @@ procedure TUpdateNotePipeline.Start(Sender: TObject);
 begin
 	inherited;
 	GContainer.NotesApi.UpdateNote(@self.Finish, self.Data);
+end;
+
+procedure TChangeLanePipeline.Finish(Sender: TObject);
+begin
+	TBrulionState(GContainer.Services[csState])
+		.Notes[FOldLaneId].Remove(self.Data);
+	TBrulionState(GContainer.Services[csState])
+		.Notes[FNewLaneId].Add([self.Data]);
+
+	FUpdatePipeline.Free;
+	inherited;
+end;
+
+procedure TChangeLanePipeline.Fail(Sender: TObject);
+begin
+	self.Data.LaneId := FOldLaneId;
+	FUpdatePipeline.Free;
+	inherited;
+end;
+
+procedure TChangeLanePipeline.Start(Sender: TObject);
+begin
+	inherited;
+
+	FOldLaneId := self.Data.LaneId;
+	self.Data.LaneId := FNewLaneId;
+
+	FUpdatePipeline := TUpdateNotePipeline.Create;
+	FUpdatePipeline.Data := self.Data;
+	FUpdatePipeline.SetNext(@self.Finish);
+	FUpdatePipeline.SetFail(@self.Fail);
+	FUpdatePipeline.Start(nil);
 end;
 
 procedure TDeleteNotePipeline.Finish(Sender: TObject);
