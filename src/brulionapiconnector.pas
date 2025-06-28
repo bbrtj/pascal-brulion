@@ -343,7 +343,7 @@ end;
 
 function TApi.GetAjax(Event: TNotifyEvent; DataResult: TBrulionApiDataBase): TAjax;
 begin
-	result := TAjax.Create(ApiUrl + self.BaseUrl);
+	result := TAjax.Create(JoinUrl(ApiUrl, self.BaseUrl));
 	result.DataResult := DataResult;
 	result.OnLoad := Event;
 
@@ -489,11 +489,21 @@ end;
 function JoinUrl(const Base, Url: String): String;
 const
 	CUrlSeparator = '/';
+
+	function ClearFront(const From: String): String;
+	begin
+		result := From;
+		if (length(result) > 0) and (result[1] = CUrlSeparator) then
+			Delete(result, 1, 1);
+	end;
+	function ClearBack(const From: String): String;
+	begin
+		result := From;
+		if (length(result) > 0) and (result[length(result)] = CUrlSeparator) then
+			Delete(result, length(result), 1);
+	end;
 begin
-	result := Base;
-	if (result[length(result)] <> CUrlSeparator) and (length(Url) > 0) and (Url[1] <> CUrlSeparator) then
-		result += CUrlSeparator;
-	result += Url;
+	result := ClearBack(Base) + CUrlSeparator + ClearFront(Url);
 end;
 
 function Serialize(const Value: TGeneralSuccessData; Stage: TSerializationStage): TJsonData;
