@@ -85,11 +85,21 @@ type
 		procedure SetNext(Target: TPipeline; Arg: Byte);
 	end;
 
-	TLoadSystemBoardsPipeline = class(TPipeline)
+	generic TLoadPipeline<T: TBrulionData> = class(TPipeline)
+	protected type
+		TThisApiDataList = specialize TBrulionApiDataList<T>;
 	protected
-		procedure Finish(Sender: TObject); override;
+		FData: TThisApiDataList;
+		procedure GotData(Sender: TObject);
+		procedure LoadMoreData(const Args: TBrulionListArgs); virtual; abstract;
 	public
 		procedure Start(Sender: TObject); override;
+	end;
+
+	TLoadSystemBoardsPipeline = class(specialize TLoadPipeline<TBoardData>)
+	protected
+		procedure Finish(Sender: TObject); override;
+		procedure LoadMoreData(const Args: TBrulionListArgs); override;
 	end;
 
 	{ Board pipelines }
@@ -105,6 +115,18 @@ type
 		property Id: TUlid read FId write FId;
 	end;
 
+	TLoadBoardLanesPipeline = class(specialize TLoadPipeline<TLaneData>)
+	private
+		FBoardData: TBoardData;
+	protected
+		procedure Finish(Sender: TObject); override;
+		procedure LoadMoreData(const Args: TBrulionListArgs); override;
+	public
+		procedure Start(Sender: TObject); override;
+	public
+		property Data: TBoardData read FBoardData write FBoardData;
+	end;
+
 	TBoardPipeline = class abstract(TPipeline)
 	private
 		FData: TBoardData;
@@ -112,13 +134,6 @@ type
 		procedure Start(Sender: TObject); override;
 	public
 		property Data: TBoardData read FData write FData;
-	end;
-
-	TLoadBoardLanesPipeline = class(TBoardPipeline)
-	protected
-		procedure Finish(Sender: TObject); override;
-	public
-		procedure Start(Sender: TObject); override;
 	end;
 
 	TCreateBoardPipeline = class(TBoardPipeline)
@@ -171,11 +186,16 @@ type
 		procedure Start(Sender: TObject); override;
 	end;
 
-	TLoadLaneNotesPipeline = class(TLanePipeline)
+	TLoadLaneNotesPipeline = class(specialize TLoadPipeline<TNoteData>)
+	private
+		FNoteData: TLaneData;
 	protected
 		procedure Finish(Sender: TObject); override;
+		procedure LoadMoreData(const Args: TBrulionListArgs); override;
 	public
 		procedure Start(Sender: TObject); override;
+	public
+		property Data: TLaneData read FNoteData write FNoteData;
 	end;
 
 	{ Note pipelines }
@@ -399,21 +419,41 @@ begin
 		self.Finish(nil);
 end;
 
+procedure TLoadPipeline.GotData(Sender: TObject);
+var
+	LResponse: TThisApiDataList;
+	LArgs: TBrulionListArgs;
+begin
+	LResponse := Sender as TThisApiDataList;
+
+	if FData <> nil then
+		LResponse.Merge(FData);
+	FData := LResponse;
+
+	if LResponse.HasMoreData then begin
+		LArgs := DefaultListArgs;
+		LArgs.Bookmark := LResponse.Bookmark;
+		self.LoadMoreData(LArgs);
+	end
+	else
+		self.Finish(FData);
+end;
+
+procedure TLoadPipeline.Start(Sender: TObject);
+begin
+	inherited;
+	self.LoadMoreData(DefaultListArgs);
+end;
 
 procedure TLoadSystemBoardsPipeline.Finish(Sender: TObject);
-var
-	LResponse: TBoardsApiDataList;
 begin
-	LResponse := Sender as TBoardsApiDataList;
-	// TODO: handle pagination
-	TBrulionState(GContainer.Services[csState]).Boards.Init(LResponse.Value);
+	TBrulionState(GContainer.Services[csState]).Boards.Init(FData.Value);
 	inherited;
 end;
 
-procedure TLoadSystemBoardsPipeline.Start(Sender: TObject);
+procedure TLoadSystemBoardsPipeline.LoadMoreData(const Args: TBrulionListArgs);
 begin
-	inherited;
-	GContainer.BoardsApi.LoadBoards(@self.Finish);
+	GContainer.BoardsApi.LoadBoards(@self.GotData, Args);
 end;
 
 procedure TLoadBoardPipeline.Finish(Sender: TObject);
@@ -445,16 +485,20 @@ procedure TLoadBoardLanesPipeline.Finish(Sender: TObject);
 var
 	LResponse: TLanesApiDataList;
 begin
-	LResponse := Sender as TLanesApiDataList;
-	// TODO: handle pagination
-	TBrulionState(GContainer.Services[csState]).Lanes.Init(LResponse.Value);
+	TBrulionState(GContainer.Services[csState]).Lanes.Init(FData.Value);
 	inherited;
+end;
+
+procedure TLoadBoardLanesPipeline.LoadMoreData(const Args: TBrulionListArgs);
+begin
+	GContainer.LanesApi.LoadLanes(@self.GotData, self.Data.Id, Args);
 end;
 
 procedure TLoadBoardLanesPipeline.Start(Sender: TObject);
 begin
 	inherited;
-	GContainer.LanesApi.LoadLanes(@self.Finish, self.Data.Id);
+	if (self.Data = nil) and (Sender <> nil) and (Sender is TBoardData) then
+		self.Data := Sender as TBoardData;
 end;
 
 procedure TCreateBoardPipeline.Finish(Sender: TObject);
@@ -543,16 +587,20 @@ procedure TLoadLaneNotesPipeline.Finish(Sender: TObject);
 var
 	LResponse: TNotesApiDataList;
 begin
-	LResponse := Sender as TNotesApiDataList;
-	// TODO: handle pagination
-	TBrulionState(GContainer.Services[csState]).Notes[self.Data.Id].Init(LResponse.Value);
+	TBrulionState(GContainer.Services[csState]).Notes[self.Data.Id].Init(FData.Value);
 	inherited;
+end;
+
+procedure TLoadLaneNotesPipeline.LoadMoreData(const Args: TBrulionListArgs);
+begin
+	GContainer.NotesApi.LoadNotes(@self.GotData, self.Data.Id, Args);
 end;
 
 procedure TLoadLaneNotesPipeline.Start(Sender: TObject);
 begin
 	inherited;
-	GContainer.NotesApi.LoadNotes(@self.Finish, self.Data.Id);
+	if (self.Data = nil) and (Sender <> nil) and (Sender is TLaneData) then
+		self.Data := Sender as TLaneData;
 end;
 
 procedure TLoadNotePipeline.Finish(Sender: TObject);

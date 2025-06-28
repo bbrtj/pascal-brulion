@@ -4,7 +4,7 @@ unit BrulionApiConnector;
 
 interface
 
-uses SysUtils, Classes, Web, FPJson, FPJsonJS, Generics.Collections, Math,
+uses SysUtils, StrUtils, Classes, JS, Web, FPJson, FPJsonJS, Generics.Collections, Math,
 	BrulionTypes;
 
 const
@@ -109,7 +109,7 @@ type
 		constructor Create();
 		procedure LoadBoard(Event: TNotifyEvent; const Id: TUlid);
 		procedure DeleteBoard(Event: TNotifyEvent; const Id: TUlid);
-		procedure LoadBoards(Event: TNotifyEvent);
+		procedure LoadBoards(Event: TNotifyEvent; const Args: TBrulionListArgs);
 		procedure CreateBoard(Event: TNotifyEvent; const Board: TBoardData);
 	end;
 
@@ -120,7 +120,7 @@ type
 		constructor Create();
 		procedure LoadLane(Event: TNotifyEvent; const Id: TUlid);
 		procedure DeleteLane(Event: TNotifyEvent; const Id: TUlid);
-		procedure LoadLanes(Event: TNotifyEvent; const BoardId: TUlid);
+		procedure LoadLanes(Event: TNotifyEvent; const BoardId: TUlid; const Args: TBrulionListArgs);
 		procedure CreateLane(Event: TNotifyEvent; const Lane: TLaneData);
 	end;
 
@@ -131,13 +131,16 @@ type
 		constructor Create();
 		procedure LoadNote(Event: TNotifyEvent; const Id: TUlid);
 		procedure DeleteNote(Event: TNotifyEvent; const Id: TUlid);
-		procedure LoadNotes(Event: TNotifyEvent; const LaneId: TUlid);
+		procedure LoadNotes(Event: TNotifyEvent; const LaneId: TUlid; const Args: TBrulionListArgs);
 		procedure CreateNote(Event: TNotifyEvent; const Note: TNoteData);
 		procedure UpdateNote(Event: TNotifyEvent; const Note: TNoteData);
 		procedure MoveNote(Event: TNotifyEvent; const Id, After: TUlid);
 	end;
 
+function DefaultListArgs(): TBrulionListArgs;
 function JoinUrl(const Base, Url: String): String;
+
+function Serialize(const Args: TBrulionListArgs): String;
 
 function Serialize(const Value: TGeneralSuccessData; Stage: TSerializationStage = ssFull): TJsonData;
 function Serialize(const Value: TGeneralErrorData; Stage: TSerializationStage = ssFull): TJsonData;
@@ -247,7 +250,7 @@ end;
 
 procedure TBrulionApiDataList.Merge(Other: TThisType);
 begin
-	self.Value := Concat(self.Value, Other.Value);
+	self.Value := Concat(Other.Value, self.Value);
 end;
 
 function TBrulionApiDataList.HasBookmark(): Boolean;
@@ -393,11 +396,11 @@ begin
 	self.GetAjax(Event, TGeneralEmptyApiData.Create).Delete(JoinUrl(CUrl, Id));
 end;
 
-procedure TBoardsApi.LoadBoards(Event: TNotifyEvent);
+procedure TBoardsApi.LoadBoards(Event: TNotifyEvent; const Args: TBrulionListArgs);
 const
 	CUrl = '';
 begin
-	self.GetAjax(Event, TBoardsApiDataList.Create).Get(CUrl);
+	self.GetAjax(Event, TBoardsApiDataList.Create).Get(CUrl + Serialize(Args));
 end;
 
 procedure TBoardsApi.CreateBoard(Event: TNotifyEvent; const Board: TBoardData);
@@ -428,11 +431,11 @@ begin
 	self.GetAjax(Event, TGeneralEmptyApiData.Create).Delete(JoinUrl(CUrl, Id));
 end;
 
-procedure TLanesApi.LoadLanes(Event: TNotifyEvent; const BoardId: TUlid);
+procedure TLanesApi.LoadLanes(Event: TNotifyEvent; const BoardId: TUlid; const Args: TBrulionListArgs);
 const
 	CUrl = '/board';
 begin
-	self.GetAjax(Event, TLanesApiDataList.Create).Get(JoinUrl(CUrl, BoardId));
+	self.GetAjax(Event, TLanesApiDataList.Create).Get(JoinUrl(CUrl, BoardId) + Serialize(Args));
 end;
 
 procedure TLanesApi.CreateLane(Event: TNotifyEvent; const Lane: TLaneData);
@@ -463,11 +466,11 @@ begin
 	self.GetAjax(Event, TGeneralEmptyApiData.Create).Delete(JoinUrl(CUrl, Id));
 end;
 
-procedure TNotesApi.LoadNotes(Event: TNotifyEvent; const LaneId: TUlid);
+procedure TNotesApi.LoadNotes(Event: TNotifyEvent; const LaneId: TUlid; const Args: TBrulionListArgs);
 const
 	CUrl = '/lane';
 begin
-	self.GetAjax(Event, TNotesApiDataList.Create).Get(JoinUrl(CUrl, LaneId));
+	self.GetAjax(Event, TNotesApiDataList.Create).Get(JoinUrl(CUrl, LaneId) + Serialize(Args));
 end;
 
 procedure TNotesApi.CreateNote(Event: TNotifyEvent; const Note: TNoteData);
@@ -496,6 +499,14 @@ begin
 	self.GetAjax(Event, TGeneralEmptyApiData.Create).Put(JoinUrl(CUrl, Id), LJson);
 end;
 
+function DefaultListArgs(): TBrulionListArgs;
+begin
+	result.Bookmark := '';
+	result.Count := 0;
+	result.SortField := '';
+	result.SortAsc := False;
+end;
+
 function JoinUrl(const Base, Url: String): String;
 const
 	CUrlSeparator = '/';
@@ -514,6 +525,30 @@ const
 	end;
 begin
 	result := ClearBack(Base) + CUrlSeparator + ClearFront(Url);
+end;
+
+function Serialize(const Args: TBrulionListArgs): String;
+var
+	LResultLabels: Array [0 .. 3] of String;
+	LResultParts: Array [0 .. 3] of String;
+	I: Integer;
+begin
+	LResultLabels[0] := 'bookmark';
+	LResultParts[0] := Args.Bookmark;
+	LResultLabels[1] := 'count';
+	LResultParts[1] := IfThen(Args.Count > 0, IntToStr(Args.Count), '');
+	LResultLabels[2] := 'sort_field';
+	LResultParts[2] := Args.SortField;
+	LResultLabels[3] := 'sort_order';
+	LResultParts[3] := IfThen(Args.SortAsc, 'asc', '');
+
+	for I := low(LResultParts) to high(LResultParts) do begin
+		if length(LResultParts[I]) > 0 then
+			result += '&' + encodeURIComponent(LResultLabels[I]) + '=' + encodeURIComponent(LResultParts[I]);
+	end;
+
+	if length(result) > 0 then
+		result[1] := '?';
 end;
 
 function Serialize(const Value: TGeneralSuccessData; Stage: TSerializationStage): TJsonData;
