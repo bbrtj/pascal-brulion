@@ -25,12 +25,9 @@
       <Item Name="Release">
         <CompilerOptions>
           <Version Value="11"/>
-          <Target>
-            <Filename Value="brulion"/>
-          </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
-            <OtherUnitFiles Value="forms"/>
+            <OtherUnitFiles Value="forms;src"/>
           </SearchPaths>
           <CodeGeneration>
             <TargetOS Value="browser"/>
@@ -41,14 +38,15 @@
             </Debugging>
           </Linking>
           <Other>
-            <CustomOptions Value="-Jeutf-8 -Jirtl.js -Jc -Jminclude -JRjs"/>
+            <CustomOptions Value="-Jeutf-8 -Jirtl.js -Jc -JRjs"/>
             <CompilerPath Value="$(pas2js)"/>
           </Other>
         </CompilerOptions>
       </Item>
-      <SharedMatrixOptions Count="2">
+      <SharedMatrixOptions Count="3">
         <Item1 ID="654480912962" Modes="Default" Value="-dBrulionApiUrl:=&apos;http://localhost:5000/api&apos;"/>
         <Item2 ID="857521971030" Modes="Default" Value="-dDEBUG"/>
+        <Item3 ID="041597170554" Modes="Release" Value="-B"/>
       </SharedMatrixOptions>
     </BuildModes>
     <PublishOptions>
