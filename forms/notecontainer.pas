@@ -22,12 +22,13 @@ type
 		procedure DragStop(Sender: TObject; Button: TMouseButton;
 			Shift: TShiftState; X, Y: NativeInt);
 		procedure UpdateNote(Sender: TObject);
+		procedure NoteFrameResize(Sender: TObject);
 	private
 		FNote: TNoteData;
 		procedure NoteUpdated(Sender: TObject);
 		procedure SetNote(AValue: TNoteData);
 		procedure SetParent(AValue: TWinControl);
-		function GetRealHeight(): Integer;
+		function GetRealTextHeight(): Integer;
 	public
 		constructor Create(AOwner: TComponent); override;
 	public
@@ -78,6 +79,27 @@ begin
 	LUpdatePipeline.SetNext(@self.NoteUpdated);
 
 	LModalPipeline.Start(nil);
+end;
+
+procedure TNoteFrame.NoteFrameResize(Sender: TObject);
+const
+	CMinHeight = 50;
+var
+	LCalculatedHeight: Integer;
+begin
+	if NoteContent <> nil then
+		LCalculatedHeight := GetRealTextHeight
+	else
+		LCalculatedHeight := 0;
+
+	LCalculatedHeight := Max(CMinHeight, LCalculatedHeight);
+
+	NoteContent.Height := LCalculatedHeight;
+	WPanel1.Height := LCalculatedHeight
+		+ NoteContent.BorderSpacing.Around * 2 + NoteContent.BorderSpacing.Top + NoteContent.BorderSpacing.Bottom;
+	Height := LCalculatedHeight
+		+ NoteContent.BorderSpacing.Around * 2 + NoteContent.BorderSpacing.Top + NoteContent.BorderSpacing.Bottom
+		+ WPanel1.BorderSpacing.Around * 2 + WPanel1.BorderSpacing.Top + WPanel1.BorderSpacing.Bottom;
 end;
 
 procedure TNoteFrame.DragStart(Sender: TObject; Button: TMouseButton;
@@ -153,12 +175,13 @@ begin
 	inherited Parent := AValue;
 end;
 
-function TNoteFrame.GetRealHeight(): Integer;
+function TNoteFrame.GetRealTextHeight(): Integer;
 const
-	CMinHeight = 60;
+	CExtraHeight = 8;
 begin
-	result := NoteContent.ContentElement.ScrollHeight;
-	result := Max(CMinHeight, result);
+	if not(self.Owner <> nil) or not(self.Owner.Owner <> nil) then exit(0);
+	result := Floor(NoteContent.ContentElement.ScrollHeight * TCustomForm(self.Owner.Owner).VerticalScale);
+	result += CExtraHeight;
 end;
 
 constructor TNoteFrame.Create(AOwner: TComponent);
@@ -172,9 +195,7 @@ begin
 	inherited;
 	if NoteContent = nil then exit;
 
-	NoteContent.Height := GetRealHeight;
-	WPanel1.Height := NoteContent.Height + NoteContent.BorderSpacing.Around * 2 + NoteContent.BorderSpacing.Top + NoteContent.BorderSpacing.Bottom;
-	Height := WPanel1.Height + WPanel1.BorderSpacing.Around * 2 + WPanel1.BorderSpacing.Top + WPanel1.BorderSpacing.Bottom;
+	DoResize;
 end;
 
 end.

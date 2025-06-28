@@ -7,6 +7,7 @@ object NoteFrame: TNoteFrame
   ClientWidth = 200
   ParentFont = False
   TabOrder = 0
+  OnResize = NoteFrameResize
   DesignLeft = 510
   DesignTop = 26
   object WPanel1: TWPanel
@@ -47,6 +48,7 @@ object NoteFrame: TNoteFrame
       AutoSize = False
       BorderSpacing.Around = 8
       Caption = 'NoteContent'
+      WordWrap = True
       OnDblClick = UpdateNote
       OnMouseDown = DragStart
       OnMouseEnter = DragEnter
