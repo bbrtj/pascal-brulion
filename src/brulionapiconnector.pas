@@ -342,12 +342,22 @@ begin
 end;
 
 function TApi.GetAjax(Event: TNotifyEvent; DataResult: TBrulionApiDataBase): TAjax;
+const
+	CClearThreshold = 20;
+var
+	I: Integer;
 begin
 	result := TAjax.Create(JoinUrl(ApiUrl, self.BaseUrl));
 	result.DataResult := DataResult;
 	result.OnLoad := Event;
 
-	// TODO: clear old api calls periodically
+	if FApiCalls.Count > CClearThreshold then begin
+		for I := FApiCalls.Count - 1 downto 0 do begin
+			if FApiCalls[I].Finished then
+				FApiCalls.Remove(FApiCalls[I]);
+		end;
+	end;
+
 	FApiCalls.Add(result);
 end;
 
