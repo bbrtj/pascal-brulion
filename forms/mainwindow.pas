@@ -247,6 +247,9 @@ end;
 
 procedure TMainForm.LoadBoardsComplete(Sender: TObject);
 begin
+	if (FState.Boards.Current = nil) and (FState.Boards.Count > 0) then
+		FState.Boards.Current := FState.Boards.Items[0];
+
 	BoardComboReload;
 	EnterBoard;
 end;
