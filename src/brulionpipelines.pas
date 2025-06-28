@@ -91,7 +91,7 @@ type
 	protected
 		FData: TThisApiDataList;
 		procedure GotData(Sender: TObject);
-		procedure LoadMoreData(const Args: TBrulionListArgs); virtual; abstract;
+		procedure LoadMoreData(Args: TBrulionListArgs); virtual; abstract;
 	public
 		procedure Start(Sender: TObject); override;
 	end;
@@ -99,7 +99,7 @@ type
 	TLoadSystemBoardsPipeline = class(specialize TLoadPipeline<TBoardData>)
 	protected
 		procedure Finish(Sender: TObject); override;
-		procedure LoadMoreData(const Args: TBrulionListArgs); override;
+		procedure LoadMoreData(Args: TBrulionListArgs); override;
 	end;
 
 	{ Board pipelines }
@@ -120,7 +120,7 @@ type
 		FBoardData: TBoardData;
 	protected
 		procedure Finish(Sender: TObject); override;
-		procedure LoadMoreData(const Args: TBrulionListArgs); override;
+		procedure LoadMoreData(Args: TBrulionListArgs); override;
 	public
 		procedure Start(Sender: TObject); override;
 	public
@@ -191,7 +191,7 @@ type
 		FNoteData: TLaneData;
 	protected
 		procedure Finish(Sender: TObject); override;
-		procedure LoadMoreData(const Args: TBrulionListArgs); override;
+		procedure LoadMoreData(Args: TBrulionListArgs); override;
 	public
 		procedure Start(Sender: TObject); override;
 	public
@@ -451,8 +451,13 @@ begin
 	inherited;
 end;
 
-procedure TLoadSystemBoardsPipeline.LoadMoreData(const Args: TBrulionListArgs);
+procedure TLoadSystemBoardsPipeline.LoadMoreData(Args: TBrulionListArgs);
+const
+	{$macro on} CSortField = BrulionBoardSortField; {$macro off}
+	CSortAsc = {$ifdef BrulionBoardSortAsc} true; {$else} false; {$endif}
 begin
+	Args.SortField := CSortField;
+	Args.SortAsc := CSortAsc;
 	GContainer.BoardsApi.LoadBoards(@self.GotData, Args);
 end;
 
@@ -489,7 +494,7 @@ begin
 	inherited;
 end;
 
-procedure TLoadBoardLanesPipeline.LoadMoreData(const Args: TBrulionListArgs);
+procedure TLoadBoardLanesPipeline.LoadMoreData(Args: TBrulionListArgs);
 begin
 	GContainer.LanesApi.LoadLanes(@self.GotData, self.Data.Id, Args);
 end;
@@ -591,7 +596,7 @@ begin
 	inherited;
 end;
 
-procedure TLoadLaneNotesPipeline.LoadMoreData(const Args: TBrulionListArgs);
+procedure TLoadLaneNotesPipeline.LoadMoreData(Args: TBrulionListArgs);
 begin
 	GContainer.NotesApi.LoadNotes(@self.GotData, self.Data.Id, Args);
 end;

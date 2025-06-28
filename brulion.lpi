@@ -43,10 +43,12 @@
           </Other>
         </CompilerOptions>
       </Item>
-      <SharedMatrixOptions Count="3">
+      <SharedMatrixOptions Count="5">
         <Item1 ID="654480912962" Modes="Default" Value="-dBrulionApiUrl:=&apos;http://localhost:5000/&apos;"/>
         <Item2 ID="857521971030" Modes="Default" Value="-dDEBUG"/>
         <Item3 ID="041597170554" Modes="Release" Value="-B"/>
+        <Item4 ID="154825179263" Value="-dBrulionBoardSortField:=&apos;name&apos;"/>
+        <Item5 ID="661012403108" Value="-dBrulionBoardSortAsc"/>
       </SharedMatrixOptions>
     </BuildModes>
     <PublishOptions>
