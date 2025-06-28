@@ -219,7 +219,7 @@ var
 	I: Integer;
 begin
 	result := nil;
-	for I := 0 to self.Count do begin
+	for I := 0 to self.Count - 1 do begin
 		if self.Items[I].Id = Id then
 			exit(self.Items[I]);
 	end;
