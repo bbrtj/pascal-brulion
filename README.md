@@ -17,3 +17,7 @@ Developed in Lazarus 4.0 and fpc 3.2.2.
 - `assets/brulion.html` can be opened to view the application, but the API HTTP requests will most likely get rejected because of cross origin policies. It is recommended to move everything from `assets` and `brulion.js` to a public server directory
 - `assets/brulion.html` from need to have its paths to css/js documents adjusted manually after moving
 
+## License
+
+BSD 2-clause license - see LICENSE.
+
